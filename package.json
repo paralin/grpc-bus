@@ -1,0 +1,13 @@
+{
+  "name": "grpc-bus",
+  "description": "Call GRPC services (even streams!) from the browser.",
+  "author": "Christian Stewart <christian@paral.in>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paralin/grpc-bus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/paralin/grpc-bus/issues"
+  },
+  "homepage": "https://github.com/paralin/grpc-bus#readme"
+}
