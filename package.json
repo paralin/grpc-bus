@@ -6,8 +6,36 @@
     "type": "git",
     "url": "git+https://github.com/paralin/grpc-bus.git"
   },
+  "scripts": {
+    "gen-proto": "./scripts/gen_proto.bash",
+    "lint": "tslint -c tslint.json src/**/*.ts --type-check",
+    "build": "tsc",
+    "test": "npm run lint && npm run mocha",
+    "ci": "npm run build && npm run test && npm run reportcov",
+    "mocha": "ts-node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js -- JASMINE_CONFIG_PATH=jasmine.json"
+  },
   "bugs": {
     "url": "https://github.com/paralin/grpc-bus/issues"
   },
-  "homepage": "https://github.com/paralin/grpc-bus#readme"
+  "homepage": "https://github.com/paralin/grpc-bus#readme",
+  "dependencies": {
+    "grpc": "^1.0.1-pre1",
+    "protobufjs": "^5.0.1",
+    "rxjs": "^5.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@types/es6-promise": "0.0.32",
+    "@types/jasmine": "^2.5.36",
+    "@types/lodash": "^4.14.34",
+    "@types/node": "^6.0.46",
+    "babel-core": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "codelyzer": "0.0.28",
+    "cz-conventional-changelog": "^1.2.0",
+    "istanbul": "^1.1.0-alpha.1",
+    "jasmine": "^2.5.2",
+    "ts-node": "^1.4.1",
+    "tslint": "^3.15.1",
+    "typescript": "~2.0.2"
+  }
 }
