@@ -56,11 +56,39 @@ describe('Server', () => {
     expect(msg.service_release.service_id).toBe(50);
   });
 
-  it('should filter invalid service ids', () => {
+  it('should filter empty service ids', () => {
     server.handleMessage({service_create: {}});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
     expect(msg.service_create).not.toBe(null);
     expect(msg.service_create.error_details).toBe('ID is not set or is already in use.');
+  });
+
+  it('should filter invalid service ids', () => {
+    server.handleMessage({service_create: {
+      service_id: 1,
+      service_info: {
+        endpoint: 'localhost:3000',
+        service_id: 'mock',
+      },
+    }});
+    expect(recvQueue.length).toBe(1);
+    let msg = recvQueue.splice(0, 1)[0];
+    expect(msg.service_create).not.toBe(null);
+    expect(msg.service_create.error_details).toBe('TypeError: mock is a Namespace not a Service.');
+  });
+
+  it('should filter unknown service ids', () => {
+    server.handleMessage({service_create: {
+      service_id: 1,
+      service_info: {
+        endpoint: 'localhost:3000',
+        service_id: 'mock.wow.NotExist',
+      },
+    }});
+    expect(recvQueue.length).toBe(1);
+    let msg = recvQueue.splice(0, 1)[0];
+    expect(msg.service_create).not.toBe(null);
+    expect(msg.service_create.error_details).toBe('TypeError: mock.wow.NotExist was not found.');
   });
 });
