@@ -29,20 +29,22 @@ export class Server {
     }
   }
 
-  private releaseLocalService(serviceId: number) {
+  private releaseLocalService(serviceId: number, sendGratuitous: boolean = true) {
     let srv = this.clientIdToService[serviceId];
-    if (!srv) {
-      return;
+    if (srv) {
+      sendGratuitous = true;
+      // Kill all ongoing calls, inform the client they are ended
+      srv.dispose();
+      delete this.clientIdToService[serviceId];
     }
-    // Kill all ongoing calls, inform the client they are ended
-    srv.dispose();
-    delete this.clientIdToService[serviceId];
-    // Inform the client the service has been released
-    this.send({
-      service_release: {
-        service_id: serviceId,
-      },
-    });
+    if (sendGratuitous) {
+      // Inform the client the service has been released
+      this.send({
+        service_release: {
+          service_id: serviceId,
+        },
+      });
+    }
   }
 
   private handleServiceCreate(msg: IGBCreateService) {
