@@ -3,14 +3,22 @@ import {
   IGBServiceInfo,
   IGBServerMessage,
 } from '../proto';
+import {
+  buildTree,
+} from '../mock';
 
 describe('Server', () => {
   let server: Server;
-  let serviceInfo: IGBServiceInfo = {};
+  let serviceInfo: IGBServiceInfo = {
+    endpoint: 'localhost:5000',
+    service_id: 'mock.Greeter',
+  };
   let recvQueue: IGBServerMessage[] = [];
+  let lookupTree: any;
 
   beforeEach(() => {
-    server = new Server((msg: IGBServerMessage) => {
+    lookupTree = buildTree();
+    server = new Server(lookupTree, (msg: IGBServerMessage) => {
       recvQueue.push(msg);
     });
     recvQueue.length = 0;
@@ -24,6 +32,9 @@ describe('Server', () => {
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
     expect(msg.service_create).not.toBe(null);
+    if (msg.service_create.error_details) {
+      throw new Error(msg.service_create.error_details);
+    }
     expect(msg.service_create.result).toBe(0);
 
     server.handleMessage({service_release: {

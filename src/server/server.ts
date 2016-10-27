@@ -12,12 +12,14 @@ import {
 export class Server {
   // Store of remote services
   // tslint:disable-next-line
-  private store = new ServiceStore();
+  private store: ServiceStore;
 
   // Map of known client IDs to services.
   private clientIdToService: { [id: number]: CallStore } = {};
 
-  public constructor(private send: (message: IGBServerMessage) => void) {
+  public constructor(private protoTree: any,
+                     private send: (message: IGBServerMessage) => void) {
+    this.store = new ServiceStore(protoTree);
   }
 
   public handleMessage(message: IGBClientMessage) {

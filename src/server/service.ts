@@ -15,13 +15,23 @@ export class Service {
   // List of client service IDs corresponding to this service.
   private clientIds: number[];
 
-  constructor(clientId: number, info: IGBServiceInfo) {
+  constructor(private protoTree: any,
+              clientId: number,
+              info: IGBServiceInfo) {
     this.clientIds = [clientId];
     this.info = info;
   }
 
   public initStub() {
-    //
+    let serv = this.protoTree.lookup(this.info.service_id);
+    if (!serv) {
+      throw new TypeError(this.info.service_id + ' was not found.');
+    }
+    if (serv.className !== 'Service') {
+      throw new TypeError(this.info.service_id + ' is a ' + serv.className + ' not a Service.');
+    }
+    let stubctr = grpc.loadObject(serv);
+    this.stub = new stubctr(this.info.endpoint, grpc.credentials.createInsecure());
   }
 
   public clientAdd(id: number) {

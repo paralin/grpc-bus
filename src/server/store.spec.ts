@@ -1,15 +1,20 @@
 import { ServiceStore } from './store';
 import { IGBServiceInfo } from '../proto';
+import {
+  buildTree,
+} from '../mock';
 
 describe('ServiceStore', () => {
   let store: ServiceStore;
-  let info: IGBServiceInfo = {};
+  let info: IGBServiceInfo = {
+    endpoint: 'localhost:3000',
+    service_id: 'mock.Greeter',
+  };
 
   beforeEach(() => {
-    store = new ServiceStore();
+    store = new ServiceStore(buildTree());
   });
 
-  // Dummy test
   it('should get a service correctly', () => {
     let serv = store.getService(1, info);
     expect(serv).not.toBe(null);

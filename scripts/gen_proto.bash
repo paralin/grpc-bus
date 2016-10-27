@@ -11,19 +11,39 @@ if [ ! -d "./scripts" ]; then
   exit 0
 fi
 
+write_definitions() {
+  JSON_PATH=$1
+  DEFS_PATH=$2
+  INTERFACES_PATH=$3
+
+  echo "Generated json, $(cat $JSON_PATH | wc -l) lines."
+  echo "/* tslint:disable:trailing-comma */" > $DEFS_PATH
+  echo "/* tslint:disable:quotemark */" >> $DEFS_PATH
+  echo "/* tslint:disable:max-line-length */" >> $DEFS_PATH
+  echo "export const PROTO_DEFINITIONS = $(cat ${JSON_PATH});" >> $DEFS_PATH
+
+  cat $JSON_PATH | node ./scripts/gen_typings.js > $INTERFACES_PATH
+}
+
 set -e
 ./node_modules/protobufjs/bin/pbjs \
   -p ${GOPATH}/src \
   -t json \
-  ./proto/**/*.proto > \
+  ./proto/grpc-bus.proto > \
   ${JSON_OUTPUT_PATH}
-echo "Generated json, $(cat $JSON_OUTPUT_PATH | wc -l) lines."
 
-echo "/* tslint:disable:trailing-comma */" > ./src/proto/definitions.ts
-echo "/* tslint:disable:quotemark */" >> ./src/proto/definitions.ts
-echo "/* tslint:disable:max-line-length */" >> ./src/proto/definitions.ts
-echo "export const PROTO_DEFINITIONS = $(cat ${JSON_OUTPUT_PATH});" >> ./src/proto/definitions.ts
+write_definitions ${JSON_OUTPUT_PATH} \
+  ./src/proto/definitions.ts \
+  ./src/proto/interfaces.ts
+rm ${JSON_OUTPUT_PATH} || true
 
-cat $JSON_OUTPUT_PATH | node ./scripts/gen_typings.js > ./src/proto/interfaces.ts
-
+# Generate mocks
+./node_modules/protobufjs/bin/pbjs \
+  -p ${GOPATH}/src \
+  -t json \
+  ./proto/mock.proto > \
+  ${JSON_OUTPUT_PATH}
+write_definitions ${JSON_OUTPUT_PATH} \
+  ./src/mock/definitions.ts \
+  ./src/mock/interfaces.ts
 rm ${JSON_OUTPUT_PATH} || true
