@@ -43,6 +43,17 @@ export class Server {
     }
   }
 
+  public dispose() {
+    this.callIdToService = {};
+    for (let servId in this.clientIdToService) {
+      if (!this.clientIdToService.hasOwnProperty(servId)) {
+        continue;
+      }
+      this.clientIdToService[servId].dispose();
+    }
+    this.clientIdToService = {};
+  }
+
   private releaseLocalService(serviceId: number, sendGratuitous: boolean = true) {
     let srv = this.clientIdToService[serviceId];
     if (srv) {

@@ -93,4 +93,17 @@ describe('Server', () => {
     expect(msg.service_create).not.toBe(null);
     expect(msg.service_create.error_details).toBe('TypeError: mock.wow.NotExist was not found.');
   });
+
+  it('should dispose properly', () => {
+    server.handleMessage({service_create: {
+      service_id: 1,
+      service_info: {
+        endpoint: 'localhost:3000',
+        service_id: 'mock.wow.NotExist',
+      },
+    }});
+    expect(recvQueue.length).toBe(1);
+    recvQueue.length = 0;
+    server.dispose();
+  });
 });
