@@ -9,7 +9,7 @@ message GBClientMessage {
 
   // Call management
   GBCreateCall call_create = 3;
-  GBCancelCall call_cancel = 4;
+  GBCallEnd    call_end    = 4;
   GBSendCall   call_send   = 5;
 }
 
@@ -20,8 +20,8 @@ message GBServerMessage {
 
   // Call management
   GBCreateCallResult call_create = 3;
-  GBCallReceive     call_receive = 5;
-  GBCallResult       call_result = 4;
+  GBCallEvent         call_event = 4;
+  GBCallEnded         call_ended = 5;
 }
 
 // Information about a service
@@ -45,17 +45,27 @@ message GBReleaseService {
   int32 service_id = 1;
 }
 
+message GBCallInfo {
+  string method_id = 1;
+  string arguments = 2;
+}
+
 // Create a call
 message GBCreateCall {
   int32 service_id = 1;
   // Unique call ID, client-generated, unique
   int32 call_id = 2;
-  // Method identifier
-  string method_id = 3;
+  // Info
+  GBCallInfo info = 3;
 }
 
-// Cancel/abort the call
-message GBCancelCall {
+// When the call is ended
+message GBCallEnded {
+  int32 call_id = 1;
+}
+
+// End the call
+message GBEndCall {
   int32 call_id = 1;
 }
 
@@ -96,6 +106,7 @@ message GBCreateCallResult {
 
   // Result
   ECreateCallResult result = 2;
+  string error_details = 3;
 
   enum ECreateCallResult {
     // Success
@@ -108,13 +119,16 @@ message GBCreateCallResult {
 }
 
 // Received message during streaming call.
-message GBCallReceive {
+message GBCallEvent {
+  // Call ID
   int32 call_id = 1;
-  // TODO: body
+  // Event ID
+  string event = 2;
+  // JSON data.
+  string data = 3;
 }
 
-// Terminate a call with a result.
-message GBCallResult {
+// Terminate a call
+message GBCallEnd {
   int32 call_id = 1;
-  // TODO: body, error
 }

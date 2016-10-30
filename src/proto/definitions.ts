@@ -27,8 +27,8 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
-                    "type": "GBCancelCall",
-                    "name": "call_cancel",
+                    "type": "GBCallEnd",
+                    "name": "call_end",
                     "id": 4
                 },
                 {
@@ -62,15 +62,15 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
-                    "type": "GBCallReceive",
-                    "name": "call_receive",
-                    "id": 5
+                    "type": "GBCallEvent",
+                    "name": "call_event",
+                    "id": 4
                 },
                 {
                     "rule": "optional",
-                    "type": "GBCallResult",
-                    "name": "call_result",
-                    "id": 4
+                    "type": "GBCallEnded",
+                    "name": "call_ended",
+                    "id": 5
                 }
             ]
         },
@@ -120,6 +120,23 @@ export const PROTO_DEFINITIONS = {
             ]
         },
         {
+            "name": "GBCallInfo",
+            "fields": [
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "method_id",
+                    "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "arguments",
+                    "id": 2
+                }
+            ]
+        },
+        {
             "name": "GBCreateCall",
             "fields": [
                 {
@@ -136,14 +153,25 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
-                    "type": "string",
-                    "name": "method_id",
+                    "type": "GBCallInfo",
+                    "name": "info",
                     "id": 3
                 }
             ]
         },
         {
-            "name": "GBCancelCall",
+            "name": "GBCallEnded",
+            "fields": [
+                {
+                    "rule": "optional",
+                    "type": "int32",
+                    "name": "call_id",
+                    "id": 1
+                }
+            ]
+        },
+        {
+            "name": "GBEndCall",
             "fields": [
                 {
                     "rule": "optional",
@@ -231,6 +259,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "ECreateCallResult",
                     "name": "result",
                     "id": 2
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "error_details",
+                    "id": 3
                 }
             ],
             "enums": [
@@ -254,18 +288,30 @@ export const PROTO_DEFINITIONS = {
             ]
         },
         {
-            "name": "GBCallReceive",
+            "name": "GBCallEvent",
             "fields": [
                 {
                     "rule": "optional",
                     "type": "int32",
                     "name": "call_id",
                     "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "event",
+                    "id": 2
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "data",
+                    "id": 3
                 }
             ]
         },
         {
-            "name": "GBCallResult",
+            "name": "GBCallEnd",
             "fields": [
                 {
                     "rule": "optional",

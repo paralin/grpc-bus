@@ -31,3 +31,24 @@ When the client is done with a connection object, it should dispose it. When all
 The connection object can then be used to hit services on the remote. A function on the connection object returns a [Protobuf.JS Service Instance](https://github.com/dcodeIO/protobuf.js/wiki/Services) that uses the client and connection to hit the remote service.
 
 Calls using this service instance will be proxied through the grpc-bus connection.
+
+Internals
+========
+
+A typical call flow for a standard call/response:
+
+ 1. Send `call_create`. Receive `call_create` response.
+ 2. `call_event` with error if error, `call_receive` if data.
+ 3. `call_end` with ended call.
+
+Call flow for a client-side stream:
+
+ 1. Send `call_create`. Receive `call_create` response.
+ 2. `call_event` with events.
+ 3. Call end when the client sends an end call.
+
+Call flow for server-client stream:
+
+ 1. Send `call_create`, receive `call_create` response.
+ 2. `call_event` with events
+ 3. Call end when client sends end call, etc.

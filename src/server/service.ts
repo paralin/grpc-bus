@@ -8,10 +8,12 @@ let grpc: any = require('grpc');
 export class Service {
   // Subject called when disposed.
   public disposed: Subject<Service> = new Subject<Service>();
+  // GRPC service stub
+  public stub: any;
+  // Service metadata
+  public serviceTree: any;
   // Service info
   private info: IGBServiceInfo;
-  // GRPC service stub
-  private stub: any;
   // List of client service IDs corresponding to this service.
   private clientIds: number[];
 
@@ -32,6 +34,7 @@ export class Service {
     }
     let stubctr = grpc.loadObject(serv);
     this.stub = new stubctr(this.info.endpoint, grpc.credentials.createInsecure());
+    this.serviceTree = serv;
   }
 
   public clientAdd(id: number) {
@@ -41,6 +44,9 @@ export class Service {
   }
 
   public clientRelease(id: number) {
+    if (!this.clientIds) {
+      return;
+    }
     this.clientIds = _.without(this.clientIds, id);
     if (this.clientIds.length === 0) {
       this.destroy();
@@ -48,8 +54,8 @@ export class Service {
   }
 
   private destroy() {
-    this.disposed.next(this);
     this.clientIds = null;
+    this.disposed.next(this);
     if (this.stub) {
       grpc.getClientChannel(this.stub).close();
     }

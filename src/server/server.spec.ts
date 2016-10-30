@@ -37,9 +37,11 @@ describe('Server', () => {
     }
     expect(msg.service_create.result).toBe(0);
 
+    expect(recvQueue.length).toBe(0);
     server.handleMessage({service_release: {
       service_id: 1,
     }});
+    console.log(recvQueue);
     expect(recvQueue.length).toBe(1);
     msg = recvQueue.splice(0, 1)[0];
     expect(msg.service_release).not.toBe(null);

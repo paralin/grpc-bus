@@ -2,7 +2,7 @@ export interface IGBClientMessage {
   service_create?: IGBCreateService;
   service_release?: IGBReleaseService;
   call_create?: IGBCreateCall;
-  call_cancel?: IGBCancelCall;
+  call_end?: IGBCallEnd;
   call_send?: IGBSendCall;
 }
 
@@ -10,8 +10,8 @@ export interface IGBServerMessage {
   service_create?: IGBCreateServiceResult;
   service_release?: IGBReleaseServiceResult;
   call_create?: IGBCreateCallResult;
-  call_receive?: IGBCallReceive;
-  call_result?: IGBCallResult;
+  call_event?: IGBCallEvent;
+  call_ended?: IGBCallEnded;
 }
 
 export interface IGBServiceInfo {
@@ -28,13 +28,22 @@ export interface IGBReleaseService {
   service_id?: number;
 }
 
+export interface IGBCallInfo {
+  method_id?: string;
+  arguments?: string;
+}
+
 export interface IGBCreateCall {
   service_id?: number;
   call_id?: number;
-  method_id?: string;
+  info?: IGBCallInfo;
 }
 
-export interface IGBCancelCall {
+export interface IGBCallEnded {
+  call_id?: number;
+}
+
+export interface IGBEndCall {
   call_id?: number;
 }
 
@@ -61,6 +70,7 @@ export interface IGBReleaseServiceResult {
 export interface IGBCreateCallResult {
   call_id?: number;
   result?: ECreateCallResult;
+  error_details?: string;
 }
 
 export const enum ECreateCallResult {
@@ -69,11 +79,13 @@ export const enum ECreateCallResult {
   GRPC_ERROR = 2,
 }
 
-export interface IGBCallReceive {
+export interface IGBCallEvent {
   call_id?: number;
+  event?: string;
+  data?: string;
 }
 
-export interface IGBCallResult {
+export interface IGBCallEnd {
   call_id?: number;
 }
 
