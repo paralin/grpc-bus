@@ -3,6 +3,7 @@
 /* tslint:disable:max-line-length */
 export const PROTO_DEFINITIONS = {
     "package": "mock",
+    "syntax": "proto3",
     "messages": [
         {
             "name": "HelloRequest",
@@ -13,7 +14,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "name",
                     "id": 1
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "HelloReply",
@@ -24,7 +26,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "message",
                     "id": 1
                 }
-            ]
+            ],
+            "syntax": "proto3"
         }
     ],
     "enums": [
@@ -35,7 +38,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "DUMMY",
                     "id": 0
                 }
-            ]
+            ],
+            "syntax": "proto3"
         }
     ],
     "services": [
@@ -73,5 +77,6 @@ export const PROTO_DEFINITIONS = {
                 }
             }
         }
-    ]
+    ],
+    "isNamespace": true
 };

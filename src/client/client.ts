@@ -15,6 +15,29 @@ export interface IGRPCTree {
   [id: string]: IGRPCTree | ((endpoint: string) => Promise<IServiceHandle>);
 }
 
+// Hack: see if something is *probably* a namespace.
+// This is due to the extreme bugginess around namespaces in pbjs.
+function likelyNamespace(tree: any): boolean {
+  if (tree.className === 'Namespace') {
+    return true;
+  }
+  if (tree.className !== 'Message' ||
+      !tree.children ||
+      tree.children.length < 1) {
+    return false;
+  }
+  for (let child of tree.children) {
+    // Messages never have services as children.
+    if (child.className === 'Service') {
+      return true;
+    }
+    // Namespaces never have fields as children.
+    if (child.className === 'Message.Field') {
+      return false;
+    }
+  }
+}
+
 export class Client {
   private serviceIdCounter: number = 1;
   private services: { [id: number]: Service } = {};
@@ -69,7 +92,8 @@ export class Client {
     if (identifier.length) {
       nextIdentifier = identifier + '.' + nextIdentifier;
     }
-    if (tree.className === 'Namespace') {
+    // Bit of a hack here, detect namespace several ways.
+    if (likelyNamespace(tree)) {
       for (let child of tree.children) {
         result[child.name] = this.recurseBuildTree(child, nextIdentifier);
       }

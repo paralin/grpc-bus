@@ -40,6 +40,7 @@ ${PBJS} \
   -t json \
   ./proto/grpc-bus.proto > \
   ${JSON_OUTPUT_PATH}
+sed -i -e "s/proto2/proto3/g" $JSON_OUTPUT_PATH
 
 write_definitions ${JSON_OUTPUT_PATH} \
   ./src/proto/definitions.ts \
@@ -52,6 +53,7 @@ ${PBJS} \
   -t json \
   ./proto/mock.proto > \
   ${JSON_OUTPUT_PATH}
+sed -i -e "s/proto2/proto3/g" $JSON_OUTPUT_PATH
 
 write_definitions ${JSON_OUTPUT_PATH} \
   ./src/mock/definitions.ts \

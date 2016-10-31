@@ -3,6 +3,7 @@
 /* tslint:disable:max-line-length */
 export const PROTO_DEFINITIONS = {
     "package": "grpcbus",
+    "syntax": "proto3",
     "messages": [
         {
             "name": "GBClientMessage",
@@ -37,7 +38,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "call_send",
                     "id": 5
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBServerMessage",
@@ -72,7 +74,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "call_ended",
                     "id": 5
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBServiceInfo",
@@ -89,7 +92,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCreateService",
@@ -106,7 +110,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_info",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBReleaseService",
@@ -117,7 +122,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 1
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCallInfo",
@@ -134,7 +140,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "arguments",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCreateCall",
@@ -157,7 +164,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "info",
                     "id": 3
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCallEnded",
@@ -174,7 +182,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBEndCall",
@@ -191,7 +200,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBSendCall",
@@ -214,7 +224,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "body",
                     "id": 3
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCreateServiceResult",
@@ -238,6 +249,7 @@ export const PROTO_DEFINITIONS = {
                     "id": 3
                 }
             ],
+            "syntax": "proto3",
             "enums": [
                 {
                     "name": "ECreateServiceResult",
@@ -254,7 +266,8 @@ export const PROTO_DEFINITIONS = {
                             "name": "GRPC_ERROR",
                             "id": 2
                         }
-                    ]
+                    ],
+                    "syntax": "proto3"
                 }
             ]
         },
@@ -267,7 +280,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 1
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCreateCallResult",
@@ -297,6 +311,7 @@ export const PROTO_DEFINITIONS = {
                     "id": 3
                 }
             ],
+            "syntax": "proto3",
             "enums": [
                 {
                     "name": "ECreateCallResult",
@@ -313,7 +328,8 @@ export const PROTO_DEFINITIONS = {
                             "name": "GRPC_ERROR",
                             "id": 2
                         }
-                    ]
+                    ],
+                    "syntax": "proto3"
                 }
             ]
         },
@@ -344,7 +360,8 @@ export const PROTO_DEFINITIONS = {
                     "name": "data",
                     "id": 3
                 }
-            ]
+            ],
+            "syntax": "proto3"
         },
         {
             "name": "GBCallEnd",
@@ -361,7 +378,9 @@ export const PROTO_DEFINITIONS = {
                     "name": "service_id",
                     "id": 2
                 }
-            ]
+            ],
+            "syntax": "proto3"
         }
-    ]
+    ],
+    "isNamespace": true
 };
