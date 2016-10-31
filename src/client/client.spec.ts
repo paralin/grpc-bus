@@ -200,6 +200,10 @@ describe('Client', () => {
           call_id: 1,
           service_id: 1,
         },
+      }, {
+        service_release: {
+          service_id: 1,
+        },
       }]);
       done();
     });

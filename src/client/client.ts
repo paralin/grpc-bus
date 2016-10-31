@@ -1,6 +1,7 @@
 import {
   IGBServerMessage,
   IGBClientMessage,
+  IGBReleaseServiceResult,
   IGBCreateCallResult,
   IGBCallEnded,
   IGBCallEvent,
@@ -34,6 +35,9 @@ export class Client {
     }
     if (message.call_ended) {
       this.handleCallEnded(message.call_ended);
+    }
+    if (message.service_release) {
+      this.handleServiceRelease(message.service_release);
     }
   }
 
@@ -122,6 +126,14 @@ export class Client {
       return;
     }
     service.handleCallCreateResponse(msg);
+  }
+
+  private handleServiceRelease(msg: IGBReleaseServiceResult) {
+    let svc = this.services[msg.service_id];
+    if (!svc) {
+      return;
+    }
+    svc.end();
   }
 
   private handleCallEnded(msg: IGBCallEnded) {

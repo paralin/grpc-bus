@@ -126,6 +126,11 @@ export class Service {
       this.calls[callId].end();
     }
     this.calls = {};
+    this.send({
+      service_release: {
+        service_id: this.clientId,
+      },
+    });
     this.disposed.next(this);
   }
 
