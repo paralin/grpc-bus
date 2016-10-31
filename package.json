@@ -2,6 +2,8 @@
   "name": "grpc-bus",
   "description": "Call GRPC services (even streams!) from the browser.",
   "author": "Christian Stewart <christian@paral.in>",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "license": "MIT",
   "repository": {
     "type": "git",

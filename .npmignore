@@ -1,0 +1,8 @@
+e2e/
+proto/
+src/
+scripts/
+coverage/
+jasmine.json
+tslint.json
+tsconfig.json
