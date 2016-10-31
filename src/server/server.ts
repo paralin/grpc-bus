@@ -5,7 +5,6 @@ import {
   IGBClientMessage,
   IGBCreateService,
   IGBCreateServiceResult,
-  IGBCreateCallResult,
   IGBReleaseService,
   IGBCreateCall,
   IGBEndCall,
@@ -19,9 +18,6 @@ export class Server {
 
   // Map of known client IDs to services.
   private clientIdToService: { [id: number]: CallStore } = {};
-
-  // Map of known call IDs to services.
-  private callIdToService: { [id: number]: CallStore } = {};
 
   public constructor(private protoTree: any,
                      private send: (message: IGBServerMessage) => void) {
@@ -44,7 +40,6 @@ export class Server {
   }
 
   public dispose() {
-    this.callIdToService = {};
     for (let servId in this.clientIdToService) {
       if (!this.clientIdToService.hasOwnProperty(servId)) {
         continue;
@@ -70,10 +65,6 @@ export class Server {
         },
       });
     }
-  }
-
-  private releaseLocalCall(callId: number) {
-    delete this.callIdToService[callId];
   }
 
   private handleServiceCreate(msg: IGBCreateService) {
@@ -112,42 +103,25 @@ export class Server {
   }
 
   private handleCallCreate(msg: IGBCreateCall) {
-    let result: IGBCreateCallResult = {
-      call_id: msg.call_id,
-      result: 0,
-    };
-
     let svc = this.clientIdToService[msg.service_id];
     if (!svc) {
-      result.result = 1;
-      result.error_details = 'Service ID not found.';
-    } else if (typeof msg.call_id !== 'number' || this.callIdToService[msg.call_id]) {
-      // todo: fix enums
-      result.result = 1;
-      result.error_details = 'ID is not set or is already in use.';
-    } else {
-      try {
-        let callId = msg.call_id;
-        let call = svc.initCall(msg);
-        this.callIdToService[callId] = svc;
-        call.disposed.subscribe(() => {
-          this.releaseLocalCall(callId);
-        });
-      } catch (e) {
-        result.result = 2;
-        result.error_details = e.toString();
-      }
+      this.send({
+        call_create: {
+          result: 1,
+          service_id: msg.service_id,
+          call_id: msg.call_id,
+          error_details: 'Service ID not found.',
+        },
+      });
+      return;
     }
-
-    this.send({
-      call_create: result,
-    });
+    svc.initCall(msg);
   }
 
   private handleCallEnd(msg: IGBEndCall) {
-    let call = this.callIdToService[msg.call_id];
-    if (call) {
-      call.dispose();
+    let svc = this.clientIdToService[msg.service_id];
+    if (svc) {
+      svc.handleCallEnd(msg);
     }
   }
 }

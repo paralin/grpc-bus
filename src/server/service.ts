@@ -37,6 +37,15 @@ export class Service {
     this.serviceTree = serv;
   }
 
+  public lookupMethod(methodId: string): any {
+    for (let child of this.serviceTree.children) {
+      if (child.name === methodId) {
+        return child;
+      }
+    }
+    return null;
+  }
+
   public clientAdd(id: number) {
     if (this.clientIds.indexOf(id) === -1) {
       this.clientIds.push(id);

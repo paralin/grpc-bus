@@ -53,7 +53,6 @@ message GBCallInfo {
 // Create a call
 message GBCreateCall {
   int32 service_id = 1;
-  // Unique call ID, client-generated, unique
   int32 call_id = 2;
   // Info
   GBCallInfo info = 3;
@@ -62,16 +61,19 @@ message GBCreateCall {
 // When the call is ended
 message GBCallEnded {
   int32 call_id = 1;
+  int32 service_id = 2;
 }
 
 // End the call
 message GBEndCall {
   int32 call_id = 1;
+  int32 service_id = 2;
 }
 
 // Send a message on a streaming call
 message GBSendCall {
   int32 call_id = 1;
+  int32 service_id = 2;
   // TODO: body
 }
 
@@ -103,6 +105,7 @@ message GBReleaseServiceResult {
 // This is sent immediately after starting call.
 message GBCreateCallResult {
   int32 call_id = 1;
+  int32 service_id = 4;
 
   // Result
   ECreateCallResult result = 2;
@@ -122,6 +125,8 @@ message GBCreateCallResult {
 message GBCallEvent {
   // Call ID
   int32 call_id = 1;
+  // Service ID
+  int32 service_id = 4;
   // Event ID
   string event = 2;
   // JSON data.
@@ -131,4 +136,5 @@ message GBCallEvent {
 // Terminate a call
 message GBCallEnd {
   int32 call_id = 1;
+  int32 service_id = 2;
 }

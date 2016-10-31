@@ -41,14 +41,17 @@ export interface IGBCreateCall {
 
 export interface IGBCallEnded {
   call_id?: number;
+  service_id?: number;
 }
 
 export interface IGBEndCall {
   call_id?: number;
+  service_id?: number;
 }
 
 export interface IGBSendCall {
   call_id?: number;
+  service_id?: number;
 }
 
 export interface IGBCreateServiceResult {
@@ -69,6 +72,7 @@ export interface IGBReleaseServiceResult {
 
 export interface IGBCreateCallResult {
   call_id?: number;
+  service_id?: number;
   result?: ECreateCallResult;
   error_details?: string;
 }
@@ -81,12 +85,14 @@ export const enum ECreateCallResult {
 
 export interface IGBCallEvent {
   call_id?: number;
+  service_id?: number;
   event?: string;
   data?: string;
 }
 
 export interface IGBCallEnd {
   call_id?: number;
+  service_id?: number;
 }
 
 

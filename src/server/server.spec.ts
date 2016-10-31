@@ -41,7 +41,6 @@ describe('Server', () => {
     server.handleMessage({service_release: {
       service_id: 1,
     }});
-    console.log(recvQueue);
     expect(recvQueue.length).toBe(1);
     msg = recvQueue.splice(0, 1)[0];
     expect(msg.service_release).not.toBe(null);
@@ -92,6 +91,35 @@ describe('Server', () => {
     let msg = recvQueue.splice(0, 1)[0];
     expect(msg.service_create).not.toBe(null);
     expect(msg.service_create.error_details).toBe('TypeError: mock.wow.NotExist was not found.');
+  });
+
+  it('should start a call correctly', () => {
+    server.handleMessage({service_create: {
+      service_id: 1,
+      service_info: {
+        endpoint: 'localhost:3000',
+        service_id: 'mock.Greeter',
+      },
+    }});
+    recvQueue.length = 0;
+    server.handleMessage({
+      call_create: {
+        call_id: 1,
+        service_id: 1,
+        info: {
+          method_id: 'SayHello',
+          arguments: '{"name":"test"}',
+        },
+      },
+    });
+    expect(recvQueue).toEqual([{
+      call_create: {
+        call_id: 1,
+        service_id: 1,
+        result: 0,
+      },
+    }]);
+    recvQueue.length = 0;
   });
 
   it('should dispose properly', () => {

@@ -31,7 +31,7 @@ export class Call {
         throw new TypeError('Arguments must be an object.');
       }
     }
-    let rpcMeta = this.service.serviceTree.lookup(this.callInfo.method_id);
+    let rpcMeta = this.service.lookupMethod(this.callInfo.method_id);
     if (!rpcMeta) {
       throw new Error('Method ' + this.callInfo.method_id + ' not found.');
     }

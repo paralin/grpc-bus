@@ -167,6 +167,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "int32",
                     "name": "call_id",
                     "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 2
                 }
             ]
         },
@@ -178,6 +184,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "int32",
                     "name": "call_id",
                     "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 2
                 }
             ]
         },
@@ -189,6 +201,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "int32",
                     "name": "call_id",
                     "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 2
                 }
             ]
         },
@@ -256,6 +274,12 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 4
+                },
+                {
+                    "rule": "optional",
                     "type": "ECreateCallResult",
                     "name": "result",
                     "id": 2
@@ -298,6 +322,12 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 4
+                },
+                {
+                    "rule": "optional",
                     "type": "string",
                     "name": "event",
                     "id": 2
@@ -318,6 +348,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "int32",
                     "name": "call_id",
                     "id": 1
+                },
+                {
+                    "rule": "optional",
+                    "type": "int32",
+                    "name": "service_id",
+                    "id": 2
                 }
             ]
         }
