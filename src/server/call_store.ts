@@ -30,7 +30,7 @@ export class CallStore {
     } else {
       try {
         let callId = msg.call_id;
-        let call = new Call(this.service, msg.call_id, msg.info, this.send);
+        let call = new Call(this.service, msg.call_id, msg.service_id, msg.info, this.send);
         call.initCall();
         this.calls[msg.call_id] = call;
         call.disposed.subscribe(() => {

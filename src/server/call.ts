@@ -17,6 +17,7 @@ export class Call {
 
   public constructor(private service: Service,
                      private clientId: number,
+                     private clientServiceId: number,
                      private callInfo: IGBCallInfo,
                      private send: (msg: IGBServerMessage) => void) {
   }
@@ -80,6 +81,12 @@ export class Call {
   }
 
   public dispose() {
+    this.send({
+      call_ended: {
+        call_id: this.clientId,
+        service_id: this.clientServiceId,
+      },
+    });
     if (this.streamHandle && typeof this.streamHandle['end'] === 'function') {
       this.streamHandle.end();
       this.streamHandle = null;

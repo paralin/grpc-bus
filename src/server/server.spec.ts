@@ -163,11 +163,29 @@ describe('Server', () => {
       service_id: 1,
       service_info: {
         endpoint: 'localhost:3000',
-        service_id: 'mock.wow.NotExist',
+        service_id: 'mock.Greeter',
       },
     }});
-    expect(recvQueue.length).toBe(1);
+    server.handleMessage({
+      call_create: {
+        call_id: 1,
+        info: {
+          method_id: 'SayHelloBidiStream',
+        },
+        service_id: 1,
+      },
+    });
     recvQueue.length = 0;
     server.dispose();
+    expect(recvQueue).toEqual([{
+      call_ended: {
+        call_id: 1,
+        service_id: 1,
+      },
+    }, {
+      service_release: {
+        service_id: 1,
+      },
+    }]);
   });
 });
