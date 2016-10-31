@@ -2,6 +2,7 @@ import {
   IGBClientMessage,
   IGBServiceInfo,
   IGBCreateCallResult,
+  IGBCallEnded,
   IGBCallEvent,
   IGBCreateServiceResult,
 } from '../proto';
@@ -90,6 +91,14 @@ export class Service {
       return;
     }
     call.handleCreateResponse(msg);
+  }
+
+  public handleCallEnded(msg: IGBCallEnded) {
+    let call = this.calls[msg.call_id];
+    if (!call) {
+      return;
+    }
+    call.handleEnded(msg);
   }
 
   public handleCallEvent(msg: IGBCallEvent) {

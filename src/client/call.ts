@@ -2,6 +2,7 @@ import {
   IGBCallInfo,
   IGBCreateCallResult,
   IGBCallEvent,
+  IGBCallEnded,
 } from '../proto';
 import { Subject } from 'rxjs/Subject';
 
@@ -51,6 +52,10 @@ export class Call implements ICallHandle {
     } else {
       this.terminateWithError('Error ' + msg.result);
     }
+  }
+
+  public handleEnded(msg: IGBCallEnded) {
+    this.dispose();
   }
 
   public handleEvent(msg: IGBCallEvent) {
