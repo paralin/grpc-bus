@@ -33,7 +33,7 @@ export class Client {
     }
   }
 
-  public buildTree(base: string = ''): IGRPCTree {
+  public buildTree(base: string = '') {
     let meta = this.protoTree.lookup(base);
     if (!meta) {
       throw new Error('Base identifier ' + base + ' not found.');
