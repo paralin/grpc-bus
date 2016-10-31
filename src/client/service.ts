@@ -10,7 +10,7 @@ import {
 } from 'rxjs/Subject';
 import { Call, ICallHandle } from './call';
 
-interface IServicePromise {
+export interface IServicePromise {
   resolve: (handle: IServiceHandle) => void;
   reject: (error?: any) => void;
 }

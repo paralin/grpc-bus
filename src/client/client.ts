@@ -9,7 +9,7 @@ import {
 import { Service } from './service';
 import { IServiceHandle } from './service';
 
-interface IGRPCTree {
+export interface IGRPCTree {
   [id: string]: IGRPCTree | ((endpoint: string) => Promise<IServiceHandle>);
 }
 
@@ -33,7 +33,7 @@ export class Client {
     }
   }
 
-  public buildTree(base: string = '') {
+  public buildTree(base: string = ''): IGRPCTree {
     let meta = this.protoTree.lookup(base);
     if (!meta) {
       throw new Error('Base identifier ' + base + ' not found.');
