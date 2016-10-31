@@ -83,6 +83,22 @@ export class Call implements ICallHandle {
     this.dispose();
   }
 
+  public write(msg: any) {
+    if (!this.callMeta.requestStream) {
+      throw new Error('Cannot write to a non-streaming request.');
+    }
+    if (typeof msg !== 'object') {
+      throw new Error('Can only write objects to streaming requests.');
+    }
+    this.send({
+      call_send: {
+        call_id: this.clientId,
+        service_id: this.clientServiceId,
+        body: JSON.stringify(msg),
+      },
+    });
+  }
+
   public dispose() {
     this.disposed.next(this);
   }

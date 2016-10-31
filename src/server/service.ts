@@ -1,5 +1,7 @@
 import { Subject } from 'rxjs/Subject';
-import { IGBServiceInfo } from '../proto';
+import {
+  IGBServiceInfo,
+} from '../proto';
 
 import * as _ from 'lodash';
 let grpc: any = require('grpc');

@@ -13,6 +13,7 @@ export class Call {
   public disposed: Subject<Call> = new Subject<Call>();
   // Handle returned by a client-side streaming call.
   private streamHandle: any;
+  private rpcMeta: any;
 
   public constructor(private service: Service,
                      private clientId: number,
@@ -35,6 +36,7 @@ export class Call {
     if (!rpcMeta) {
       throw new Error('Method ' + this.callInfo.method_id + ' not found.');
     }
+    this.rpcMeta = rpcMeta;
     if (rpcMeta.className !== 'Service.RPCMethod') {
       throw new Error('Method ' +
                       this.callInfo.method_id +
@@ -66,6 +68,15 @@ export class Call {
     } else if (!rpcMeta.requestStream && rpcMeta.responseStream) {
       this.streamHandle = this.service.stub[camelMethod](args);
     }
+  }
+
+  public write(msg: any) {
+    if (!this.rpcMeta.requestStream ||
+        !this.streamHandle ||
+        typeof this.streamHandle['write'] !== 'function') {
+      return;
+    }
+    this.streamHandle.write(msg);
   }
 
   public dispose() {

@@ -207,6 +207,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "int32",
                     "name": "service_id",
                     "id": 2
+                },
+                {
+                    "rule": "optional",
+                    "type": "string",
+                    "name": "body",
+                    "id": 3
                 }
             ]
         },

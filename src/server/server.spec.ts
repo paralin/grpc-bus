@@ -122,6 +122,42 @@ describe('Server', () => {
     recvQueue.length = 0;
   });
 
+  it('should start a streaming call correctly', () => {
+    server.handleMessage({service_create: {
+      service_id: 1,
+      service_info: {
+        endpoint: 'localhost:3000',
+        service_id: 'mock.Greeter',
+      },
+    }});
+    recvQueue.length = 0;
+    server.handleMessage({
+      call_create: {
+        call_id: 1,
+        service_id: 1,
+        info: {
+          method_id: 'SayHelloBidiStream',
+        },
+      },
+    });
+    expect(recvQueue).toEqual([{
+      call_create: {
+        call_id: 1,
+        service_id: 1,
+        result: 0,
+      },
+    }]);
+    recvQueue.length = 0;
+    server.handleMessage({
+      call_send: {
+        call_id: 1,
+        service_id: 1,
+        body: '{"name":"world"}',
+      },
+    });
+    expect(recvQueue.length).toBe(0);
+  });
+
   it('should dispose properly', () => {
     server.handleMessage({service_create: {
       service_id: 1,

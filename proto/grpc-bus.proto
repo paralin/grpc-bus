@@ -74,7 +74,7 @@ message GBEndCall {
 message GBSendCall {
   int32 call_id = 1;
   int32 service_id = 2;
-  // TODO: body
+  string body = 3;
 }
 
 // Result of attempting to create a service

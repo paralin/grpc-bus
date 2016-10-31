@@ -4,6 +4,7 @@ import {
   IGBServerMessage,
   IGBCreateCall,
   IGBCreateCallResult,
+  IGBSendCall,
   IGBEndCall,
 } from '../proto';
 
@@ -52,6 +53,13 @@ export class CallStore {
       return;
     }
     call.dispose();
+  }
+
+  public handleCallWrite(msg: IGBSendCall) {
+    let call = this.calls[msg.call_id];
+    if (call) {
+      call.write(JSON.parse(msg.body));
+    }
   }
 
   public releaseLocalCall(id: number) {

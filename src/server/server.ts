@@ -3,6 +3,7 @@ import { CallStore } from './call_store';
 import {
   IGBServerMessage,
   IGBClientMessage,
+  IGBSendCall,
   IGBCreateService,
   IGBCreateServiceResult,
   IGBReleaseService,
@@ -36,6 +37,9 @@ export class Server {
     }
     if (message.call_end) {
       this.handleCallEnd(message.call_end);
+    }
+    if (message.call_send) {
+      this.handleCallSend(message.call_send);
     }
   }
 
@@ -100,6 +104,15 @@ export class Server {
 
   private handleServiceRelease(msg: IGBReleaseService) {
     this.releaseLocalService(msg.service_id);
+  }
+
+  private handleCallSend(msg: IGBSendCall) {
+    let svc = this.clientIdToService[msg.service_id];
+    if (!svc) {
+      this.releaseLocalService(msg.service_id, true);
+      return;
+    }
+    svc.handleCallWrite(msg);
   }
 
   private handleCallCreate(msg: IGBCreateCall) {
