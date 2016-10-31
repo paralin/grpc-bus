@@ -5,6 +5,13 @@ package mock;
 service Greeter {
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc SayHelloClientStream(stream HelloRequest) returns (HelloReply) {}
+  rpc SayHelloServerStream(HelloRequest) returns (stream HelloReply) {}
+  rpc SayHelloBidiStream(stream HelloRequest) returns (stream HelloReply) {}
+}
+
+enum EDummyEnum {
+  DUMMY = 0;
 }
 
 // The request message containing the user's name.

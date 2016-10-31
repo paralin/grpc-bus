@@ -19,6 +19,7 @@ describe('Client', () => {
       recvQueue.push(msg);
     });
     serviceTree = client.buildTree();
+    recvQueue.length = 0;
   });
 
   it('should build the tree correctly', () => {
@@ -42,6 +43,73 @@ describe('Client', () => {
     });
   });
 
+  it('should handle service creation errors', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    servicePromise.then(() => {
+      done('Did not reject promise.');
+    }, (err) => {
+      expect(err).toBe('Error here');
+      done();
+    });
+    client.handleMessage({
+      service_create: {
+        result: 2,
+        service_id: 1,
+        error_details: 'Error here',
+      },
+    });
+  });
+
+  it('should handle service creation errors without details', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    servicePromise.then(() => {
+      done('Did not reject promise.');
+    }, (err) => {
+      expect(err).toBe('Error 2');
+      done();
+    });
+    client.handleMessage({
+      service_create: {
+        result: 2,
+        service_id: 1,
+      },
+    });
+  });
+
+  it('should not allow invalid callback/argument combos', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    client.handleMessage({
+      service_create: {
+        result: 0,
+        service_id: 1,
+      },
+    });
+    servicePromise.then((service) => {
+      recvQueue.length = 0;
+      expect(() => {
+        service['sayHelloClientStream']({}, () => {
+          //
+        });
+      }).toThrow(new Error('Argument should not be specified for a request stream.'));
+      expect(() => {
+        service['sayHello'](() => {
+          //
+        });
+      }).toThrow(new Error('Argument must be specified for a non-streaming request.'));
+      expect(() => {
+        service['sayHello']({});
+      }).toThrow(new Error('Callback should be specified for a non-streaming response.'));
+      expect(() => {
+        service['sayHelloServerStream']({}, () => {
+          //
+        });
+      }).toThrow(new Error('Callback should not be specified for a response stream.'));
+      expect(service['sayHelloServerStream']({})).not.toBe(null);
+      service.end();
+      done();
+    }, done);
+  });
+
   it('should start a rpc call correctly', (done) => {
     let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
     let serviceCreateMsg = recvQueue[0];
@@ -53,11 +121,12 @@ describe('Client', () => {
       },
     });
     recvQueue.length = 0;
+    let resultAsserted = false;
     servicePromise.then((mockService) => {
       expect(mockService).not.toBe(null);
       mockService['sayHello']({name: 'test'}, (err: any, response: any) => {
         expect(response).toEqual({test: [1, 2, 3]});
-        done();
+        resultAsserted = true;
       });
       expect(recvQueue.length).toBe(1);
       let msg = recvQueue[0];
@@ -73,6 +142,13 @@ describe('Client', () => {
         },
       });
       client.handleMessage({
+        call_create: {
+          call_id: 1,
+          result: 0,
+          service_id: 1,
+        },
+      });
+      client.handleMessage({
         call_event: {
           call_id: 1,
           service_id: 1,
@@ -84,6 +160,37 @@ describe('Client', () => {
         call_ended: {
           call_id: 1,
           service_id: 1,
+        },
+      });
+      expect(resultAsserted).toBe(true);
+      expect(recvQueue.length).toBe(0);
+      done();
+    });
+  });
+
+  it('should handle a create error properly', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    client.handleMessage({
+      service_create: {
+        result: 0,
+        service_id: 1,
+      },
+    });
+    recvQueue.length = 0;
+    servicePromise.then((mockService) => {
+      expect(mockService).not.toBe(null);
+      mockService['sayHello']({name: 'test'}, (err: any, response: any) => {
+        expect(response).toBe(undefined);
+        expect(err).toBe('Error on server side.');
+        done();
+      });
+      expect(recvQueue.length).toBe(1);
+      client.handleMessage({
+        call_create: {
+          call_id: 1,
+          service_id: 1,
+          result: 2,
+          error_details: 'Error on server side.',
         },
       });
       expect(recvQueue.length).toBe(0);

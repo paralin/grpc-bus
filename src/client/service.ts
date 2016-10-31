@@ -67,6 +67,7 @@ export class Service {
   }
 
   public handleCreateResponse(msg: IGBCreateServiceResult) {
+    /* istanbul ignore next */
     if (!this.promise) {
       return;
     }
@@ -87,6 +88,7 @@ export class Service {
 
   public handleCallCreateResponse(msg: IGBCreateCallResult) {
     let call = this.calls[msg.call_id];
+    /* istanbul ignore next */
     if (!call) {
       return;
     }
@@ -95,6 +97,7 @@ export class Service {
 
   public handleCallEnded(msg: IGBCallEnded) {
     let call = this.calls[msg.call_id];
+    /* istanbul ignore next */
     if (!call) {
       return;
     }
@@ -103,6 +106,7 @@ export class Service {
 
   public handleCallEvent(msg: IGBCallEvent) {
     let call = this.calls[msg.call_id];
+    /* istanbul ignore next */
     if (!call) {
       return;
     }
@@ -110,7 +114,19 @@ export class Service {
   }
 
   public end() {
-    //
+    this.dispose();
+  }
+
+  public dispose() {
+    for (let callId in this.calls) {
+      /* istanbul ignore next */
+      if (!this.calls.hasOwnProperty(callId)) {
+        continue;
+      }
+      this.calls[callId].dispose();
+    }
+    this.calls = {};
+    this.disposed.next(this);
   }
 
   private buildStubMethod(methodMeta: any) {
@@ -141,8 +157,14 @@ export class Service {
     if (methodMeta.requestStream && argument) {
       throw new Error('Argument should not be specified for a request stream.');
     }
+    if (!methodMeta.requestStream && !argument) {
+      throw new Error('Argument must be specified for a non-streaming request.');
+    }
     if (methodMeta.responseStream && callback) {
       throw new Error('Callback should not be specified for a response stream.');
+    }
+    if (!methodMeta.responseStream && !callback) {
+      throw new Error('Callback should be specified for a non-streaming response.');
     }
     let call = new Call(callId, info, methodMeta, callback);
     this.calls[callId] = call;

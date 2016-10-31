@@ -6,4 +6,8 @@ export interface IHelloReply {
   message?: string;
 }
 
+export const enum EDummyEnum {
+  DUMMY = 0,
+}
+
 

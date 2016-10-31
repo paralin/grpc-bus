@@ -27,6 +27,17 @@ export const PROTO_DEFINITIONS = {
             ]
         }
     ],
+    "enums": [
+        {
+            "name": "EDummyEnum",
+            "values": [
+                {
+                    "name": "DUMMY",
+                    "id": 0
+                }
+            ]
+        }
+    ],
     "services": [
         {
             "name": "Greeter",
@@ -34,7 +45,30 @@ export const PROTO_DEFINITIONS = {
             "rpc": {
                 "SayHello": {
                     "request": "HelloRequest",
+                    "request_stream": false,
                     "response": "HelloReply",
+                    "response_stream": false,
+                    "options": {}
+                },
+                "SayHelloClientStream": {
+                    "request": "HelloRequest",
+                    "request_stream": true,
+                    "response": "HelloReply",
+                    "response_stream": false,
+                    "options": {}
+                },
+                "SayHelloServerStream": {
+                    "request": "HelloRequest",
+                    "request_stream": false,
+                    "response": "HelloReply",
+                    "response_stream": true,
+                    "options": {}
+                },
+                "SayHelloBidiStream": {
+                    "request": "HelloRequest",
+                    "request_stream": true,
+                    "response": "HelloReply",
+                    "response_stream": true,
                     "options": {}
                 }
             }

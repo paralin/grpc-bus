@@ -1,5 +1,6 @@
 #!/bin/bash
 JSON_OUTPUT_PATH=./.tmp.json
+PBJS=./node_modules/protobufjs/bin/pbjs
 
 if [ ! -d "./scripts" ]; then
   if [ -n "$ATTEMPTED_CD_DOTDOT" ]; then
@@ -9,6 +10,14 @@ if [ ! -d "./scripts" ]; then
   set -e
   cd ../ && ATTEMPTED_CD_DOTDOT=yes $@
   exit 0
+fi
+
+# Check if we need to update pbjs
+# https://github.com/dcodeIO/protobuf.js/pull/470
+if ! grep -q "\"request_stream\": mtd.requestStream," ./node_modules/protobufjs/cli/pbjs/targets/json.js ; then
+  echo "Updating protobuf.js to tip..."
+  echo " -> see https://github.com/dcodeIO/protobuf.js/pull/470"
+  npm install github:dcodeIO/protobuf.js\#f2661c32e
 fi
 
 write_definitions() {
@@ -26,7 +35,7 @@ write_definitions() {
 }
 
 set -e
-./node_modules/protobufjs/bin/pbjs \
+${PBJS} \
   -p ${GOPATH}/src \
   -t json \
   ./proto/grpc-bus.proto > \
@@ -38,11 +47,12 @@ write_definitions ${JSON_OUTPUT_PATH} \
 rm ${JSON_OUTPUT_PATH} || true
 
 # Generate mocks
-./node_modules/protobufjs/bin/pbjs \
+${PBJS} \
   -p ${GOPATH}/src \
   -t json \
   ./proto/mock.proto > \
   ${JSON_OUTPUT_PATH}
+
 write_definitions ${JSON_OUTPUT_PATH} \
   ./src/mock/definitions.ts \
   ./src/mock/interfaces.ts
