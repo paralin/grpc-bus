@@ -1,5 +1,5 @@
 e2e/
-proto/
+proto/mock.proto
 src/
 scripts/
 coverage/
