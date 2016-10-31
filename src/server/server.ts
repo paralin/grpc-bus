@@ -21,8 +21,10 @@ export class Server {
   private clientIdToService: { [id: number]: CallStore } = {};
 
   public constructor(private protoTree: any,
-                     private send: (message: IGBServerMessage) => void) {
-    this.store = new ServiceStore(protoTree);
+                     private send: (message: IGBServerMessage) => void,
+                     // Pass require('grpc')
+                     private grpc: any) {
+    this.store = new ServiceStore(protoTree, this.grpc);
   }
 
   public handleMessage(message: IGBClientMessage) {

@@ -20,7 +20,7 @@ describe('Server', () => {
     lookupTree = buildTree();
     server = new Server(lookupTree, (msg: IGBServerMessage) => {
       recvQueue.push(msg);
-    });
+    }, require('grpc'));
     recvQueue.length = 0;
   });
 

@@ -4,7 +4,6 @@ import {
 } from '../proto';
 
 import * as _ from 'lodash';
-let grpc: any = require('grpc');
 
 // A stored service.
 export class Service {
@@ -21,7 +20,9 @@ export class Service {
 
   constructor(private protoTree: any,
               clientId: number,
-              info: IGBServiceInfo) {
+              info: IGBServiceInfo,
+              // Pass require('grpc') as an argument.
+              private grpc: any) {
     this.clientIds = [clientId];
     this.info = info;
   }
@@ -34,8 +35,8 @@ export class Service {
     if (serv.className !== 'Service') {
       throw new TypeError(this.info.service_id + ' is a ' + serv.className + ' not a Service.');
     }
-    let stubctr = grpc.loadObject(serv);
-    this.stub = new stubctr(this.info.endpoint, grpc.credentials.createInsecure());
+    let stubctr = this.grpc.loadObject(serv);
+    this.stub = new stubctr(this.info.endpoint, this.grpc.credentials.createInsecure());
     this.serviceTree = serv;
   }
 
@@ -68,7 +69,7 @@ export class Service {
     this.clientIds = null;
     this.disposed.next(this);
     if (this.stub) {
-      grpc.getClientChannel(this.stub).close();
+      this.grpc.getClientChannel(this.stub).close();
     }
     this.stub = null;
     this.info = null;

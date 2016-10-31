@@ -8,14 +8,14 @@ import { Service } from './service';
 export class ServiceStore {
   private services: { [id: string]: Service } = {};
 
-  public constructor(private protoTree: any) {}
+  public constructor(private protoTree: any, private grpc: any) {}
 
   // Get service for a client.
   public getService(clientId: number, info: IGBServiceInfo): Service {
     let identifier = buildServiceInfoIdentifier(info);
     let serv: Service = this.services[identifier];
     if (!serv) {
-      serv = new Service(this.protoTree, clientId, info);
+      serv = new Service(this.protoTree, clientId, info, this.grpc);
       serv.disposed.subscribe(() => {
         if (this.services) {
           delete this.services[identifier];
