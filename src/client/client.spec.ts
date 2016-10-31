@@ -110,6 +110,79 @@ describe('Client', () => {
     }, done);
   });
 
+  it('should start a streaming rpc call correctly', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    client.handleMessage({
+      service_create: {
+        result: 0,
+        service_id: 1,
+      },
+    });
+    servicePromise.then((mockService) => {
+      expect(mockService).not.toBe(null);
+      recvQueue.length = 0;
+      let call = mockService['sayHelloBidiStream']();
+      expect(recvQueue.length).toBe(1);
+      let msg = recvQueue[0];
+      let throwOnData = false;
+      recvQueue.length = 0;
+      call.on('data', (data: any) => {
+        if (throwOnData) {
+          done(new Error('Data should not be called after off()'));
+        }
+        try {
+          expect(data).toEqual({'test': [1, 2, 3]});
+        } catch (e) {
+          done(e);
+        }
+      });
+      expect(msg).toEqual({
+        call_create: {
+          call_id: 1,
+          info: {
+            method_id: 'SayHelloBidiStream',
+            arguments: undefined,
+          },
+          service_id: 1,
+        },
+      });
+      client.handleMessage({
+        call_create: {
+          call_id: 1,
+          result: 0,
+          service_id: 1,
+        },
+      });
+      client.handleMessage({
+        call_event: {
+          call_id: 1,
+          service_id: 1,
+          event: 'data',
+          data: '{"test":[1,2,3]}',
+        },
+      });
+      call.off('data');
+      throwOnData = true;
+      client.handleMessage({
+        call_event: {
+          call_id: 1,
+          service_id: 1,
+          event: 'data',
+          data: '{"hello":1}',
+        },
+      });
+      call.on('end', () => {
+        done();
+      });
+      client.handleMessage({
+        call_ended: {
+          call_id: 1,
+          service_id: 1,
+        },
+      });
+    });
+  });
+
   it('should start a rpc call correctly', (done) => {
     let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
     let serviceCreateMsg = recvQueue[0];

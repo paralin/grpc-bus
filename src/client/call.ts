@@ -24,6 +24,7 @@ export interface ICallHandle {
 export class Call implements ICallHandle {
   public disposed: Subject<Call> = new Subject<Call>();
   private eventHandlers: { [id: string]: ((arg: any) => void)[] } = {};
+  private endEmitted: boolean = false;
 
   constructor(public clientId: number,
               public clientServiceId: number,
@@ -100,6 +101,9 @@ export class Call implements ICallHandle {
   }
 
   public dispose() {
+    if (!this.endEmitted) {
+      this.emit('end', null);
+    }
     this.disposed.next(this);
   }
 
@@ -118,6 +122,10 @@ export class Call implements ICallHandle {
   }
 
   private emit(eventId: string, arg: any) {
+    if (eventId === 'end') {
+      this.endEmitted = true;
+    }
+
     let handlers = this.eventHandlers[eventId];
     if (!handlers) {
       return;

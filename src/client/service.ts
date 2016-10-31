@@ -18,12 +18,12 @@ export interface IServicePromise {
 
 export interface IServiceHandle {
   // Call when done using this service.
-  end(): void;
+  end(): ICallHandle;
 
   // All the available stub calls
   [id: string]: (argument?: any,
                  callback?: (error?: any, response?: any) => void)
-                 => ICallHandle | void;
+                 => ICallHandle;
 }
 
 export class Service {
@@ -45,7 +45,7 @@ export class Service {
     this.serviceMeta = this.protoTree.lookup(this.info.service_id);
     this.handle = {
       end: () => {
-        this.end();
+        return this.end();
       },
     };
     if (!this.serviceMeta) {
@@ -115,6 +115,7 @@ export class Service {
 
   public end() {
     this.dispose();
+    return this;
   }
 
   public dispose() {
