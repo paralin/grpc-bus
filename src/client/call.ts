@@ -3,6 +3,7 @@ import {
   IGBCreateCallResult,
   IGBCallEvent,
   IGBCallEnded,
+  IGBClientMessage,
 } from '../proto';
 import { Subject } from 'rxjs/Subject';
 
@@ -25,9 +26,11 @@ export class Call implements ICallHandle {
   private eventHandlers: { [id: string]: ((arg: any) => void)[] } = {};
 
   constructor(public clientId: number,
+              public clientServiceId: number,
               private info: IGBCallInfo,
               private callMeta: any,
-              private callback: (error?: any, response?: any) => void) {
+              private callback: (error?: any, response?: any) => void,
+              private send: (message: IGBClientMessage) => void) {
   }
 
   public on(eventId: string, callback: (arg: any) => void): void {
@@ -68,6 +71,16 @@ export class Call implements ICallHandle {
         this.terminateWithData(data);
       }
     }
+  }
+
+  public end() {
+    this.send({
+      call_end: {
+        call_id: this.clientId,
+        service_id: this.clientServiceId,
+      },
+    });
+    this.dispose();
   }
 
   public dispose() {

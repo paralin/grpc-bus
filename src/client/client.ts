@@ -47,7 +47,15 @@ export class Client {
 
   // Clears all ongoing calls + services, etc
   public reset() {
-    //
+    for (let serviceId in this.services) {
+      /* istanbul ignore next */
+      if (!this.services.hasOwnProperty(serviceId)) {
+        continue;
+      }
+      let service = this.services[serviceId];
+      service.end();
+    }
+    this.services = {};
   }
 
   private recurseBuildTree(tree: any, identifier: string): IGRPCTree |

@@ -123,7 +123,7 @@ export class Service {
       if (!this.calls.hasOwnProperty(callId)) {
         continue;
       }
-      this.calls[callId].dispose();
+      this.calls[callId].end();
     }
     this.calls = {};
     this.disposed.next(this);
@@ -166,7 +166,7 @@ export class Service {
     if (!methodMeta.responseStream && !callback) {
       throw new Error('Callback should be specified for a non-streaming response.');
     }
-    let call = new Call(callId, info, methodMeta, callback);
+    let call = new Call(callId, this.clientId, info, methodMeta, callback, this.send);
     this.calls[callId] = call;
     call.disposed.subscribe(() => {
       delete this.calls[callId];

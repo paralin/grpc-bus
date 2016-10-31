@@ -163,7 +163,44 @@ describe('Client', () => {
         },
       });
       expect(resultAsserted).toBe(true);
-      expect(recvQueue.length).toBe(0);
+      done();
+    });
+  });
+
+  it('should cancel all calls when calling reset', (done) => {
+    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    client.handleMessage({
+      service_create: {
+        result: 0,
+        service_id: 1,
+      },
+    });
+    servicePromise.then((mockService) => {
+      expect(mockService).not.toBe(null);
+      mockService['sayHelloBidiStream']();
+      client.handleMessage({
+        call_create: {
+          call_id: 1,
+          result: 0,
+          service_id: 1,
+        },
+      });
+      client.handleMessage({
+        call_event: {
+          call_id: 1,
+          service_id: 1,
+          event: 'data',
+          data: '{"test":[1,2,3]}',
+        },
+      });
+      recvQueue.length = 0;
+      client.reset();
+      expect(recvQueue).toEqual([{
+        call_end: {
+          call_id: 1,
+          service_id: 1,
+        },
+      }]);
       done();
     });
   });
@@ -184,7 +221,6 @@ describe('Client', () => {
         expect(err).toBe('Error on server side.');
         done();
       });
-      expect(recvQueue.length).toBe(1);
       client.handleMessage({
         call_create: {
           call_id: 1,
@@ -193,7 +229,6 @@ describe('Client', () => {
           error_details: 'Error on server side.',
         },
       });
-      expect(recvQueue.length).toBe(0);
     });
   });
 });
