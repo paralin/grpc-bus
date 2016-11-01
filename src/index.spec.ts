@@ -53,72 +53,60 @@ describe('e2e', () => {
   });
 
   it('should make a non-streaming call properly', (done) => {
-    let callMade = false;
     mockServer.callReceived.subscribe((call: string) => {
-      callMade = call === 'sayHello';
+      expect(call).toBe('sayHello');
     });
     gbClientService['sayHello']({name: 'kappa'}, (err: any, res: any) => {
-      done(err || (callMade ? null : 'Call was not made correctly.'));
+      if (err) {
+        throw err;
+      }
+      done();
     });
   }, 5000);
 
   it('should make a client-side streaming call properly', (done) => {
-    let callMade = false;
     mockServer.callReceived.subscribe((call: string) => {
-      callMade = call === 'sayHelloClientStream';
+      expect(call).toBe('sayHelloClientStream');
     });
     let call = gbClientService['sayHelloClientStream']((err: any, res: any) => {
-      done(err || (callMade ? null : 'Call was not made correctly.'));
+      if (err) {
+        throw err;
+      }
+      done();
     });
     call.write({name: 'FailFish'});
     call.end();
   }, 5000);
 
   it('should make a bidirectional streaming call properly', (done) => {
-    let callMade = false;
-    let dataReceived = false;
     mockServer.callReceived.subscribe((call: string) => {
-      callMade = call === 'sayHelloBidiStream';
+      expect(call).toBe('sayHelloBidiStream');
     });
     let call = gbClientService['sayHelloBidiStream']();
     call.on('data', (data) => {
       expect(data).toEqual({message: 'FailFish'});
-      dataReceived = true;
     });
     call.on('error', done);
     call.on('end', () => {
-      if (!callMade) {
-        done('Call was not made properly.');
-      } else if (!dataReceived) {
-        done('Data was not received properly.');
-      } else {
-        done();
-      }
+      done();
     });
     call.write({name: 'FailFish'});
     call.end();
   }, 5000);
 
   it('should make a server-side streaming call properly', (done) => {
-    let callMade = false;
-    let dataReceived = false;
     mockServer.callReceived.subscribe((call: string) => {
-      callMade = call === 'sayHelloServerStream';
+      expect(call).toBe('sayHelloServerStream');
     });
     let call = gbClientService['sayHelloServerStream']({name: 'FailFish'});
     call.on('data', (data) => {
       expect(data).toEqual({message: 'Hello'});
-      dataReceived = true;
     });
-    call.on('error', done);
+    call.on('error', (err) => {
+      throw err;
+    });
     call.on('end', () => {
-      if (!callMade) {
-        done('Call was not made properly.');
-      } else if (!dataReceived) {
-        done('Data was not received properly.');
-      } else {
-        done();
-      }
+      done();
     });
   }, 5000);
 });
