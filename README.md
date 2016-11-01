@@ -17,38 +17,39 @@ In this way the client can implement the ProtoBuf.JS RPC interfaces in the brows
 
 Thus, we can call GRPC servers from the browser via a Node.JS websocket stream.
 
-API
-===
+Example
+=======
+
+A full example can be found in the end-to-end tests under `./src/index.spec.ts`.
+
+First, create your client, and give it a way to communicate with the server:
+
+```js
+var protoTree = ProtobufJS.load('...');
+var grpcBus = require('grpc-bus');
+// MySendFunction takes a message object.
+// This message should be passed to handleMessage on the server.
+var client = new grpcBus.Client(protoTree, mySendFunction);
+var tree = client.buildTree();
+tree.MyService('localhost:3000').then(function(service) {
+  service.MyMethod({hello: 'world'}, function(err, resp) {
+    console.log(resp);
+    service.end();
+  });
+});
+```
+
+You should always call `service.end()` when you are done with a service handle, so the server knows it's safe to dispose it.
+
+You'll notice that inside the `then` block the API is exactly the same as the Node GRPC api.
+
+Internals
+=========
 
 A client must first be instantiated. The client object has to be given a function to send a message to the server, and should be called when the server sends a message to it. In this way, the user can implement their own transport, for example, websockets.
 
-Next, the client can be used to request a connection to a remote service. The client has a function to create a connection given a endpoint and security options. These options are used server-side to deduplicate connections to a service. If the client requests 3 connections with identical properties, the server will only dial once. This allows the client to request one-off connections when needed and not experience significant disconnect / connect churn on the server.
+Next, the client can instantiate a service object, similar to the GRPC Node API. This returns a promise, resolved with a service handle with stubs for the methods on the service. The server will de-duplicate and re-use multiple service objects internally.
 
-A connection object has a connection state. The server will actively try to maintain an open connection with the service, and will reconnect if necessary.
+The client can then make calls against the remote service with the same API as the GRPC Node implementation.
 
-When the client is done with a connection object, it should dispose it. When all connection objects are disposed, the server will disconnect from the service and forget the credentials used.
-
-The connection object can then be used to hit services on the remote. A function on the connection object returns a [Protobuf.JS Service Instance](https://github.com/dcodeIO/protobuf.js/wiki/Services) that uses the client and connection to hit the remote service.
-
-Calls using this service instance will be proxied through the grpc-bus connection.
-
-Internals
-========
-
-A typical call flow for a standard call/response:
-
- 1. Send `call_create`. Receive `call_create` response.
- 2. `call_event` with error if error, `call_receive` if data.
- 3. `call_end` with ended call.
-
-Call flow for a client-side stream:
-
- 1. Send `call_create`. Receive `call_create` response.
- 2. `call_event` with events.
- 3. Call end when the client sends an end call.
-
-Call flow for server-client stream:
-
- 1. Send `call_create`, receive `call_create` response.
- 2. `call_event` with events
- 3. Call end when client sends end call, etc.
+When the client is done with a service object, it should dispose it. When all service objects are disposed, the server will disconnect from the service and forget the credentials used.
