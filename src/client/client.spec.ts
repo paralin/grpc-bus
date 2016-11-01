@@ -294,7 +294,7 @@ describe('Client', () => {
     servicePromise.then((mockService) => {
       expect(mockService).not.toBe(null);
       mockService['sayHello']({name: 'test'}, (err: any, response: any) => {
-        expect(response).toBe(undefined);
+        expect(response).toBe(null);
         expect(err).toBe('Error on server side.');
         done();
       });

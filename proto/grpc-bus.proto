@@ -9,6 +9,7 @@ message GBClientMessage {
 
   // Call management
   GBCreateCall call_create = 3;
+  // Terminates a call
   GBCallEnd    call_end    = 4;
   GBSendCall   call_send   = 5;
 }
@@ -75,6 +76,8 @@ message GBSendCall {
   int32 call_id = 1;
   int32 service_id = 2;
   string body = 3;
+  // Do we want to just send end() over a streaming call?
+  bool is_end = 4;
 }
 
 // Result of attempting to create a service

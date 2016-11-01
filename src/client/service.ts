@@ -5,6 +5,7 @@ import {
   IGBCallEnded,
   IGBCallEvent,
   IGBCreateServiceResult,
+  IGBReleaseServiceResult,
 } from '../proto';
 import {
   Subject,
@@ -33,6 +34,7 @@ export class Service {
 
   private calls: { [id: number]: Call } = {};
   private callIdCounter: number = 1;
+  private serverReleased: boolean = false;
 
   constructor(private protoTree: any,
               private clientId: number,
@@ -113,6 +115,11 @@ export class Service {
     call.handleEvent(msg);
   }
 
+  public handleServiceRelease(msg: IGBReleaseServiceResult) {
+    this.serverReleased = true;
+    this.end();
+  }
+
   public end() {
     this.dispose();
     return this;
@@ -124,14 +131,16 @@ export class Service {
       if (!this.calls.hasOwnProperty(callId)) {
         continue;
       }
-      this.calls[callId].end();
+      this.calls[callId].terminate();
     }
     this.calls = {};
-    this.send({
-      service_release: {
-        service_id: this.clientId,
-      },
-    });
+    if (!this.serverReleased) {
+      this.send({
+        service_release: {
+          service_id: this.clientId,
+        },
+      });
+    }
     this.disposed.next(this);
   }
 

@@ -157,7 +157,7 @@ export class Client {
     if (!svc) {
       return;
     }
-    svc.end();
+    svc.handleServiceRelease(msg);
   }
 
   private handleCallEnded(msg: IGBCallEnded) {

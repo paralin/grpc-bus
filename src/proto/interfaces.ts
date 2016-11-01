@@ -53,6 +53,7 @@ export interface IGBSendCall {
   call_id?: number;
   service_id?: number;
   body?: string;
+  is_end?: boolean;
 }
 
 export interface IGBCreateServiceResult {

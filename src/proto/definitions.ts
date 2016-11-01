@@ -223,6 +223,12 @@ export const PROTO_DEFINITIONS = {
                     "type": "string",
                     "name": "body",
                     "id": 3
+                },
+                {
+                    "rule": "optional",
+                    "type": "bool",
+                    "name": "is_end",
+                    "id": 4
                 }
             ],
             "syntax": "proto3"

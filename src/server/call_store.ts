@@ -57,7 +57,12 @@ export class CallStore {
 
   public handleCallWrite(msg: IGBSendCall) {
     let call = this.calls[msg.call_id];
-    if (call) {
+    if (!call) {
+      return;
+    }
+    if (msg.is_end) {
+      call.sendEnd();
+    } else {
       call.write(JSON.parse(msg.body));
     }
   }

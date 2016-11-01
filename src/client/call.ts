@@ -17,8 +17,11 @@ export interface ICallHandle {
   // Remove all handlers for an event on a streaming call.
   off?(eventId: string): void;
 
-  // Call to terminate this call on a streaming call.
+  // Call to send the 'end' on a client-side streaming call.
   end?(): void;
+
+  // Call to terminate this call on a streaming call.
+  terminate?(): void;
 }
 
 export class Call implements ICallHandle {
@@ -63,7 +66,10 @@ export class Call implements ICallHandle {
   }
 
   public handleEvent(msg: IGBCallEvent) {
-    let data = JSON.parse(msg.data);
+    let data: any;
+    if (msg.data && typeof msg.data === 'string') {
+      data = JSON.parse(msg.data);
+    }
     this.emit(msg.event, data);
     if (this.callback) {
       if (msg.event === 'error') {
@@ -75,6 +81,16 @@ export class Call implements ICallHandle {
   }
 
   public end() {
+    this.send({
+      call_send: {
+        call_id: this.clientId,
+        service_id: this.clientServiceId,
+        is_end: true,
+      },
+    });
+  }
+
+  public terminate() {
     this.send({
       call_end: {
         call_id: this.clientId,
@@ -109,7 +125,7 @@ export class Call implements ICallHandle {
 
   private terminateWithError(error: any) {
     if (this.callback) {
-      this.callback(error, undefined);
+      this.callback(error, null);
     } else {
       this.emit('error', error);
     }
@@ -117,7 +133,7 @@ export class Call implements ICallHandle {
   }
 
   private terminateWithData(data: any) {
-    this.callback(undefined, data);
+    this.callback(null, data);
     this.dispose();
   }
 

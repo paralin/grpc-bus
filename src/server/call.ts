@@ -51,13 +51,7 @@ export class Call {
     }
     if (rpcMeta.requestStream && !rpcMeta.responseStream) {
       this.streamHandle = this.service.stub[camelMethod]((error: any, response: any) => {
-        if (error) {
-          this.callEventHandler('error')(error);
-        }
-        if (response) {
-          this.callEventHandler('data')(response);
-        }
-        this.dispose();
+        this.handleCallCallback(error, response);
       });
       // If they sent some args (shouldn't happen usually) send it off anyway
       if (args) {
@@ -68,6 +62,17 @@ export class Call {
       this.setCallHandlers(this.streamHandle);
     } else if (!rpcMeta.requestStream && rpcMeta.responseStream) {
       this.streamHandle = this.service.stub[camelMethod](args);
+      this.setCallHandlers(this.streamHandle);
+    } else if (!rpcMeta.requestStream && !rpcMeta.responseStream) {
+      if (!args) {
+        throw new Error('Method ' +
+                        this.callInfo.method_id +
+                        ' requires an argument object of type ' +
+                        rpcMeta.requestName + '.');
+      }
+      this.service.stub[camelMethod](args, (error: any, response: any) => {
+        this.handleCallCallback(error, response);
+      });
     }
   }
 
@@ -78,6 +83,15 @@ export class Call {
       return;
     }
     this.streamHandle.write(msg);
+  }
+
+  public sendEnd() {
+    if (!this.rpcMeta.requestStream ||
+        !this.streamHandle ||
+        typeof this.streamHandle['end'] !== 'function') {
+      return;
+    }
+    this.streamHandle.end();
   }
 
   public dispose() {
@@ -94,6 +108,16 @@ export class Call {
     this.disposed.next(this);
   }
 
+  private handleCallCallback(error: any, response: any) {
+    if (error) {
+      this.callEventHandler('error')(error);
+    }
+    if (response) {
+      this.callEventHandler('data')(response);
+    }
+    this.dispose();
+  }
+
   private setCallHandlers(streamHandle: any) {
     this.streamHandle.on('data', this.callEventHandler('data'));
     this.streamHandle.on('status', this.callEventHandler('status'));
@@ -105,6 +129,7 @@ export class Call {
     return (data: any) => {
       this.send({
         call_event: {
+          service_id: this.clientServiceId,
           call_id: this.clientId,
           data: JSON.stringify(data),
           event: eventId,
