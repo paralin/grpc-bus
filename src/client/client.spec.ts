@@ -46,7 +46,7 @@ describe('Client', () => {
   it('should handle service creation errors', (done) => {
     let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
     servicePromise.then(() => {
-      done('Did not reject promise.');
+      throw new Error('Did not reject promise.');
     }, (err) => {
       expect(err).toBe('Error here');
       done();
@@ -63,7 +63,7 @@ describe('Client', () => {
   it('should handle service creation errors without details', (done) => {
     let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
     servicePromise.then(() => {
-      done('Did not reject promise.');
+      throw new Error('Did not reject promise.');
     }, (err) => {
       expect(err).toBe('Error 2');
       done();
@@ -127,14 +127,8 @@ describe('Client', () => {
       let throwOnData = false;
       recvQueue.length = 0;
       call.on('data', (data: any) => {
-        if (throwOnData) {
-          done(new Error('Data should not be called after off()'));
-        }
-        try {
-          expect(data).toEqual({'test': [1, 2, 3]});
-        } catch (e) {
-          done(e);
-        }
+        expect(throwOnData).toBe(false);
+        expect(data).toEqual({'test': [1, 2, 3]});
       });
       expect(msg).toEqual({
         call_create: {
