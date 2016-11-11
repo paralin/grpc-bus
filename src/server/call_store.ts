@@ -63,7 +63,7 @@ export class CallStore {
     if (msg.is_end) {
       call.sendEnd();
     } else {
-      call.write(JSON.parse(msg.body));
+      call.write(msg.bin_data);
     }
   }
 

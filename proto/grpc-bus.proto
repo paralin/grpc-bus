@@ -48,7 +48,7 @@ message GBReleaseService {
 
 message GBCallInfo {
   string method_id = 1;
-  string arguments = 2;
+  bytes bin_argument = 2;
 }
 
 // Create a call
@@ -75,7 +75,7 @@ message GBEndCall {
 message GBSendCall {
   int32 call_id = 1;
   int32 service_id = 2;
-  string body = 3;
+  bytes bin_data = 3;
   // Do we want to just send end() over a streaming call?
   bool is_end = 4;
 }
@@ -133,7 +133,9 @@ message GBCallEvent {
   // Event ID
   string event = 2;
   // JSON data.
-  string data = 3;
+  string json_data = 3;
+  // Binary data
+  bytes bin_data = 5;
 }
 
 // Terminate a call

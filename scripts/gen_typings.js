@@ -17,7 +17,7 @@ const typeMap = {
   "sfixed64": "number",
   "bool": "boolean",
   // base64? XXX
-  "bytes": "Buffer",
+  "bytes": "any",
 };
 
 function buildTypings(defs) {

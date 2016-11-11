@@ -6,6 +6,7 @@ import {
   IGBCallEvent,
   IGBCreateServiceResult,
   IGBReleaseServiceResult,
+  IGBCallInfo,
 } from '../proto';
 import {
   Subject,
@@ -161,13 +162,14 @@ export class Service {
                     argument?: any,
                     callback?: (error?: any, response?: any) => void): ICallHandle {
     let callId = this.callIdCounter++;
-    let args: string;
+    let args: any;
+    let requestBuilder = methodMeta.resolvedRequestType.build();
     if (argument) {
-      args = JSON.stringify(argument);
+      args = requestBuilder.encode(argument);
     }
-    let info = {
+    let info: IGBCallInfo = {
       method_id: methodMeta.name,
-      arguments: args,
+      bin_argument: args,
     };
     if (methodMeta.requestStream && argument) {
       throw new Error('Argument should not be specified for a request stream.');

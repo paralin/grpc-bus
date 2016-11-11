@@ -26,13 +26,7 @@ export class Call {
     if (!this.callInfo || !this.callInfo.method_id) {
       throw new Error('Call info, method ID must be given');
     }
-    let args: any;
-    if (this.callInfo.arguments && this.callInfo.arguments.length) {
-      args = JSON.parse(this.callInfo.arguments);
-      if (typeof args !== 'object' || args.constructor !== Object) {
-        throw new TypeError('Arguments must be an object.');
-      }
-    }
+    let args: any = this.callInfo.bin_argument;
     let rpcMeta = this.service.lookupMethod(this.callInfo.method_id);
     if (!rpcMeta) {
       throw new Error('Method ' + this.callInfo.method_id + ' not found.');
@@ -119,19 +113,23 @@ export class Call {
   }
 
   private setCallHandlers(streamHandle: any) {
-    this.streamHandle.on('data', this.callEventHandler('data'));
+    let dataHandler = this.callEventHandler('data', true);
+    this.streamHandle.on('data', (data: any) => {
+      dataHandler(data);
+    });
     this.streamHandle.on('status', this.callEventHandler('status'));
     this.streamHandle.on('error', this.callEventHandler('error'));
     this.streamHandle.on('end', this.callEventHandler('end'));
   }
 
-  private callEventHandler(eventId: string) {
+  private callEventHandler(eventId: string, isBin: boolean = false) {
     return (data: any) => {
       this.send({
         call_event: {
           service_id: this.clientServiceId,
           call_id: this.clientId,
-          data: JSON.stringify(data),
+          json_data: !isBin ? JSON.stringify(data) : null,
+          bin_data: isBin ? data : null,
           event: eventId,
         },
       });
