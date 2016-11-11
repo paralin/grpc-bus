@@ -2,6 +2,7 @@ import { Subject } from 'rxjs/Subject';
 import { Service } from './service';
 import {
   IGBCallInfo,
+  IGBCallEvent,
   IGBServerMessage,
 } from '../proto';
 
@@ -124,14 +125,21 @@ export class Call {
 
   private callEventHandler(eventId: string, isBin: boolean = false) {
     return (data: any) => {
+      let callEvent: IGBCallEvent = {
+        service_id: this.clientServiceId,
+        call_id: this.clientId,
+        json_data: !isBin ? JSON.stringify(data) : undefined,
+        bin_data: isBin ? data : undefined,
+        event: eventId,
+      };
+      if (!callEvent.json_data) {
+        delete callEvent.json_data;
+      }
+      if (!callEvent.bin_data) {
+        delete callEvent.bin_data;
+      }
       this.send({
-        call_event: {
-          service_id: this.clientServiceId,
-          call_id: this.clientId,
-          json_data: !isBin ? JSON.stringify(data) : null,
-          bin_data: isBin ? data : null,
-          event: eventId,
-        },
+        call_event: callEvent,
       });
     };
   }

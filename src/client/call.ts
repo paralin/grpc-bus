@@ -58,7 +58,7 @@ export class Call implements ICallHandle {
     if (msg.result === 0) {
       return;
     }
-    if (msg.error_details) {
+    if (msg.error_details && msg.error_details.length) {
       this.terminateWithError(msg.error_details);
     } else {
       this.terminateWithError('Error ' + msg.result);
@@ -71,9 +71,9 @@ export class Call implements ICallHandle {
 
   public handleEvent(msg: IGBCallEvent) {
     let data: any = null;
-    if (msg.json_data) {
+    if (msg.json_data && msg.json_data.length) {
       data = JSON.parse(msg.json_data);
-    } else if (msg.bin_data) {
+    } else if (msg.bin_data && (msg.bin_data.limit || msg.bin_data.length)) {
       data = this.decodeResponseData(msg.bin_data);
     }
     this.emit(msg.event, data);
