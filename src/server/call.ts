@@ -125,8 +125,6 @@ export class Call {
 
   private callEventHandler(eventId: string, isBin: boolean = false) {
     return (data: any) => {
-      console.log(eventId);
-      console.log(isBin);
       let callEvent: IGBCallEvent = {
         service_id: this.clientServiceId,
         call_id: this.clientId,
@@ -140,7 +138,6 @@ export class Call {
       if (!callEvent.bin_data) {
         delete callEvent.bin_data;
       }
-      console.log(callEvent);
       this.send({
         call_event: callEvent,
       });
