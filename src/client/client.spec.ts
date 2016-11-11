@@ -12,6 +12,10 @@ describe('Client', () => {
   let recvQueue: IGBClientMessage[] = [];
   let lookupTree: any;
   let serviceTree: any;
+  // An encoded sample request
+  let encodedData: any;
+  // An encoded sample response
+  let encodedResponseData: any;
 
   beforeEach(() => {
     lookupTree = buildTree();
@@ -19,6 +23,8 @@ describe('Client', () => {
       recvQueue.push(msg);
     });
     serviceTree = client.buildTree();
+    encodedData = serviceTree.mock.HelloRequest.encode({'name': 'hello'}).toBase64();
+    encodedResponseData = serviceTree.mock.HelloReply.encode({message: 'hello'}).toBase64();
     recvQueue.length = 0;
   });
 
@@ -128,14 +134,14 @@ describe('Client', () => {
       recvQueue.length = 0;
       call.on('data', (data: any) => {
         expect(throwOnData).toBe(false);
-        expect(data).toEqual({'test': [1, 2, 3]});
+        expect(data.toRaw()).toEqual({message: 'hello'});
       });
       expect(msg).toEqual({
         call_create: {
           call_id: 1,
           info: {
             method_id: 'SayHelloBidiStream',
-            arguments: undefined,
+            bin_argument: undefined,
           },
           service_id: 1,
         },
@@ -147,12 +153,13 @@ describe('Client', () => {
           service_id: 1,
         },
       });
+      // encode test data
       client.handleMessage({
         call_event: {
           call_id: 1,
           service_id: 1,
           event: 'data',
-          data: '{"test":[1,2,3]}',
+          bin_data: encodedResponseData,
         },
       });
       call.off('data');
@@ -162,7 +169,7 @@ describe('Client', () => {
           call_id: 1,
           service_id: 1,
           event: 'data',
-          data: '{"hello":1}',
+          bin_data: encodedResponseData,
         },
       });
       call.on('end', () => {
@@ -192,18 +199,19 @@ describe('Client', () => {
     servicePromise.then((mockService) => {
       expect(mockService).not.toBe(null);
       mockService['sayHello']({name: 'test'}, (err: any, response: any) => {
-        expect(response).toEqual({test: [1, 2, 3]});
+        expect(response.toRaw()).toEqual({message: 'hello'});
         resultAsserted = true;
       });
       expect(recvQueue.length).toBe(1);
       let msg = recvQueue[0];
       recvQueue.length = 0;
+      msg.call_create.info.bin_argument = !!msg.call_create.info.bin_argument;
       expect(msg).toEqual({
         call_create: {
           call_id: 1,
           info: {
             method_id: 'SayHello',
-            arguments: '{"name":"test"}',
+            bin_argument: true,
           },
           service_id: 1,
         },
@@ -220,7 +228,7 @@ describe('Client', () => {
           call_id: 1,
           service_id: 1,
           event: 'data',
-          data: '{"test":[1,2,3]}',
+          bin_data: encodedData,
         },
       });
       client.handleMessage({
@@ -257,7 +265,7 @@ describe('Client', () => {
           call_id: 1,
           service_id: 1,
           event: 'data',
-          data: '{"test":[1,2,3]}',
+          bin_data: encodedData,
         },
       });
       recvQueue.length = 0;

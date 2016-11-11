@@ -15,6 +15,10 @@ describe('Server', () => {
   };
   let recvQueue: IGBServerMessage[] = [];
   let lookupTree: any;
+  // An encoded sample request
+  let encodedData: any;
+  // An encoded sample response
+  let encodedResponseData: any;
 
   beforeEach(() => {
     lookupTree = buildTree();
@@ -22,6 +26,9 @@ describe('Server', () => {
       recvQueue.push(msg);
     }, require('grpc'));
     recvQueue.length = 0;
+    let serviceTree = require('grpc').loadObject(lookupTree).build();
+    encodedData = serviceTree.mock.HelloRequest.encode({'name': 'hello'}).toBase64();
+    encodedResponseData = serviceTree.mock.HelloReply.encode({message: 'hello'}).toBase64();
   });
 
   it('should create a service correctly', () => {
@@ -108,7 +115,7 @@ describe('Server', () => {
         service_id: 1,
         info: {
           method_id: 'SayHello',
-          arguments: '{"name":"test"}',
+          bin_argument: encodedData,
         },
       },
     });
@@ -152,7 +159,7 @@ describe('Server', () => {
       call_send: {
         call_id: 1,
         service_id: 1,
-        body: '{"name":"world"}',
+        bin_data: encodedData,
       },
     });
     expect(recvQueue.length).toBe(0);

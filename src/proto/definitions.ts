@@ -136,8 +136,8 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
-                    "type": "string",
-                    "name": "arguments",
+                    "type": "bytes",
+                    "name": "bin_argument",
                     "id": 2
                 }
             ],
@@ -220,8 +220,8 @@ export const PROTO_DEFINITIONS = {
                 },
                 {
                     "rule": "optional",
-                    "type": "string",
-                    "name": "body",
+                    "type": "bytes",
+                    "name": "bin_data",
                     "id": 3
                 },
                 {
@@ -363,8 +363,14 @@ export const PROTO_DEFINITIONS = {
                 {
                     "rule": "optional",
                     "type": "string",
-                    "name": "data",
+                    "name": "json_data",
                     "id": 3
+                },
+                {
+                    "rule": "optional",
+                    "type": "bytes",
+                    "name": "bin_data",
+                    "id": 5
                 }
             ],
             "syntax": "proto3"

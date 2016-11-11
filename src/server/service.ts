@@ -2,6 +2,9 @@ import { Subject } from 'rxjs/Subject';
 import {
   IGBServiceInfo,
 } from '../proto';
+import {
+  loadObject,
+} from './grpc';
 
 import * as _ from 'lodash';
 
@@ -35,7 +38,7 @@ export class Service {
     if (serv.className !== 'Service') {
       throw new TypeError(this.info.service_id + ' is a ' + serv.className + ' not a Service.');
     }
-    let stubctr = this.grpc.loadObject(serv);
+    let stubctr = loadObject(this.grpc, serv);
     this.stub = new stubctr(this.info.endpoint, this.grpc.credentials.createInsecure());
     this.serviceTree = serv;
   }

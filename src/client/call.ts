@@ -28,6 +28,8 @@ export class Call implements ICallHandle {
   public disposed: Subject<Call> = new Subject<Call>();
   private eventHandlers: { [id: string]: ((arg: any) => void)[] } = {};
   private endEmitted: boolean = false;
+  private responseBuilder: any;
+  private requestBuilder: any;
 
   constructor(public clientId: number,
               public clientServiceId: number,
@@ -35,6 +37,8 @@ export class Call implements ICallHandle {
               private callMeta: any,
               private callback: (error?: any, response?: any) => void,
               private send: (message: IGBClientMessage) => void) {
+    this.requestBuilder = callMeta.resolvedRequestType.build();
+    this.responseBuilder = callMeta.resolvedResponseType.build();
   }
 
   public on(eventId: string, callback: (arg: any) => void): void {
@@ -66,9 +70,11 @@ export class Call implements ICallHandle {
   }
 
   public handleEvent(msg: IGBCallEvent) {
-    let data: any;
-    if (msg.data && typeof msg.data === 'string') {
-      data = JSON.parse(msg.data);
+    let data: any = null;
+    if (msg.json_data) {
+      data = JSON.parse(msg.json_data);
+    } else if (msg.bin_data) {
+      data = this.decodeResponseData(msg.bin_data);
     }
     this.emit(msg.event, data);
     if (this.callback) {
@@ -111,7 +117,7 @@ export class Call implements ICallHandle {
       call_send: {
         call_id: this.clientId,
         service_id: this.clientServiceId,
-        body: JSON.stringify(msg),
+        bin_data: this.requestBuilder.encode(msg),
       },
     });
   }
@@ -121,6 +127,10 @@ export class Call implements ICallHandle {
       this.emit('end', null);
     }
     this.disposed.next(this);
+  }
+
+  private decodeResponseData(data: any): any {
+    return this.responseBuilder.decode(data);
   }
 
   private terminateWithError(error: any) {

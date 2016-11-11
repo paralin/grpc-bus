@@ -30,7 +30,7 @@ export interface IGBReleaseService {
 
 export interface IGBCallInfo {
   method_id?: string;
-  arguments?: string;
+  bin_argument?: any;
 }
 
 export interface IGBCreateCall {
@@ -52,7 +52,7 @@ export interface IGBEndCall {
 export interface IGBSendCall {
   call_id?: number;
   service_id?: number;
-  body?: string;
+  bin_data?: any;
   is_end?: boolean;
 }
 
@@ -89,7 +89,8 @@ export interface IGBCallEvent {
   call_id?: number;
   service_id?: number;
   event?: string;
-  data?: string;
+  json_data?: string;
+  bin_data?: any;
 }
 
 export interface IGBCallEnd {

@@ -84,7 +84,8 @@ describe('e2e', () => {
     });
     let call = gbClientService['sayHelloBidiStream']();
     call.on('data', (data) => {
-      expect(data).toEqual({message: 'FailFish'});
+      // buggy expect
+      expect(data.toRaw()).toEqual({message: 'FailFish'});
     });
     call.on('error', done);
     call.on('end', () => {
@@ -100,7 +101,7 @@ describe('e2e', () => {
     });
     let call = gbClientService['sayHelloServerStream']({name: 'FailFish'});
     call.on('data', (data) => {
-      expect(data).toEqual({message: 'Hello'});
+      expect(data.toRaw()).toEqual({message: 'Hello'});
     });
     call.on('error', (err) => {
       throw err;
