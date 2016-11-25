@@ -6,3 +6,4 @@ coverage/
 jasmine.json
 tslint.json
 tsconfig.json
+test/
