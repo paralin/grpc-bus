@@ -41,7 +41,7 @@
     "protobufjs": "^5.0.1",
     "ts-node": "^1.7.0",
     "tslint": "^4.0.0",
-    "typescript": "2.1.1"
+    "typescript": "2.1.4"
   },
   "config": {
     "commitizen": {
