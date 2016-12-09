@@ -1,31 +1,26 @@
-function processEnum(types, enm) {
-  if (enm.name && enm.values && enm.values.length > 0) {
-    var typ = types[enm.name] = {isEnum: true};
-    for (var i = 0; i < enm.values.length; i++) {
-      var valo = enm.values[i];
-      typ[valo.name] = valo.id;
-    }
-  }
-}
-
-function processMessage(types, msg) {
-  if (msg.name && msg.fields && msg.fields.length > 0) {
-    var typ = types[msg.name] = {};
-    for (var i = 0; i < msg.fields.length; i++) {
-      var f = msg.fields[i];
-      typ[f.name] = f;
-    }
-  }
-
-  if (msg.messages != null) {
-    for (var i = 0; i < msg.messages.length; i++) {
-      processMessage(types, msg.messages[i]);
+function processMessage(types, msg, name) {
+  if (name) {
+    if (msg.fields) {
+      var typ = types[name] = {};
+      var fieldNames = Object.keys(msg.fields);
+      for (var i = 0; i < fieldNames.length; i++) {
+        var fname = fieldNames[i];
+        typ[fname] = msg.fields[fname];
+      }
+    } else if (msg.values) {
+      var typ = types[name] = {isEnum: true};
+      var valueNames = Object.keys(msg.values);
+      for (var i = 0; i < valueNames.length; i++) {
+        var valname = valueNames[i];
+        typ[valname] = msg.values[valname];
+      }
     }
   }
 
-  if (msg.enums != null) {
-    for (var i = 0; i < msg.enums.length; i++) {
-      processEnum(types, msg.enums[i]);
+  if (msg.nested) {
+    var nestedKeys = Object.keys(msg.nested);
+    for (var i = 0; i < nestedKeys.length; i++) {
+      processMessage(types, msg.nested[nestedKeys[i]], nestedKeys[i]);
     }
   }
 }
@@ -37,13 +32,12 @@ if (!module.parent) {
     process.stdin.resume();
     process.stdin.on('data', function(buf) { data += buf.toString(); });
     process.stdin.on('end', function() {
-      processMessage(types, JSON.parse(data));
+      processMessage(types, JSON.parse(data), null);
       console.log(types);
     });
   })();
 }
 
 module.exports = {
-  processEnum: processEnum,
   processMessage: processMessage,
 };

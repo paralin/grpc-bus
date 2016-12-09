@@ -6,43 +6,46 @@ import {
 import {
   buildTree,
 } from '../mock';
+import * as ProtoBuf from 'protobufjs';
 
 describe('Client', () => {
   let client: Client;
   let recvQueue: IGBClientMessage[] = [];
-  let lookupTree: any;
-  let serviceTree: any;
+  let lookupTree: ProtoBuf.Root;
   // An encoded sample request
   let encodedData: any;
   // An encoded sample response
   let encodedResponseData: any;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     lookupTree = buildTree();
     client = new Client(lookupTree, (msg: IGBClientMessage) => {
       recvQueue.push(msg);
     });
-    serviceTree = client.buildTree();
-    encodedData = serviceTree.mock.HelloRequest.encode({'name': 'hello'}).toBase64();
-    encodedResponseData = serviceTree.mock.HelloReply.encode({message: 'hello'}).toBase64();
+    lookupTree = client.root;
+    encodedData = (<any>lookupTree.lookup('mock.HelloRequest'))
+      .encode({'name': 'hello'}).finish();
+    encodedResponseData = (<any>lookupTree.lookup('mock.HelloReply'))
+      .encode({message: 'hello'}).finish();
     recvQueue.length = 0;
+    done();
   });
 
   it('should build the tree correctly', () => {
-    let tree = client.buildTree();
+    let tree = client.root;
     expect(typeof tree).toBe('object');
-    expect(typeof tree['mock']).toBe('object');
-    expect(typeof tree['mock']['Greeter']).toBe('function');
+    expect(typeof tree.lookup('mock')).toBe('object');
+    expect(typeof tree.lookup('mock.Greeter')).toBe('function');
 
-    let greeter = tree['mock']['Greeter']('localhost:3000');
+    let greeter = (<any>tree.lookup('mock.Greeter'))('localhost:3000');
     expect(typeof greeter).toBe('object');
     expect(greeter.constructor).toBe(Promise);
     expect(recvQueue.length).toBe(1);
     expect(recvQueue[0]).toEqual({
-      service_create: {
-        service_id: 1,
-        service_info: {
-          service_id: 'mock.Greeter',
+      serviceCreate: {
+        serviceId: 1,
+        serviceInfo: {
+          serviceId: 'mock.Greeter',
           endpoint: 'localhost:3000',
         },
       },
@@ -50,7 +53,8 @@ describe('Client', () => {
   });
 
   it('should handle service creation errors', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     servicePromise.then(() => {
       throw new Error('Did not reject promise.');
     }, (err) => {
@@ -58,16 +62,17 @@ describe('Client', () => {
       done();
     });
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 2,
-        service_id: 1,
-        error_details: 'Error here',
+        serviceId: 1,
+        errorDetails: 'Error here',
       },
     });
   });
 
   it('should handle service creation errors without details', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     servicePromise.then(() => {
       throw new Error('Did not reject promise.');
     }, (err) => {
@@ -75,19 +80,20 @@ describe('Client', () => {
       done();
     });
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 2,
-        service_id: 1,
+        serviceId: 1,
       },
     });
   });
 
   it('should not allow invalid callback/argument combos', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 0,
-        service_id: 1,
+        serviceId: 1,
       },
     });
     servicePromise.then((service) => {
@@ -117,11 +123,12 @@ describe('Client', () => {
   });
 
   it('should start a streaming rpc call correctly', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 0,
-        service_id: 1,
+        serviceId: 1,
       },
     });
     servicePromise.then((mockService) => {
@@ -132,109 +139,110 @@ describe('Client', () => {
       let msg = recvQueue[0];
       let throwOnData = false;
       recvQueue.length = 0;
-      call.on('data', (data: any) => {
+      call.on('data', (data: ProtoBuf.Message) => {
         expect(throwOnData).toBe(false);
-        expect(data.toRaw()).toEqual({message: 'hello'});
+        expect(data.asJSON()).toEqual({message: 'hello'});
       });
       expect(msg).toEqual({
-        call_create: {
-          call_id: 1,
+        callCreate: {
+          callId: 1,
           info: {
-            method_id: 'SayHelloBidiStream',
-            bin_argument: undefined,
+            methodId: 'SayHelloBidiStream',
+            binArgument: undefined,
           },
-          service_id: 1,
+          serviceId: 1,
         },
       });
       client.handleMessage({
-        call_create: {
-          call_id: 1,
+        callCreate: {
+          callId: 1,
           result: 0,
-          service_id: 1,
+          serviceId: 1,
         },
       });
       // encode test data
       client.handleMessage({
-        call_event: {
-          call_id: 1,
-          service_id: 1,
+        callEvent: {
+          callId: 1,
+          serviceId: 1,
           event: 'data',
-          bin_data: encodedResponseData,
+          binData: encodedResponseData,
         },
       });
       call.off('data');
       throwOnData = true;
       client.handleMessage({
-        call_event: {
-          call_id: 1,
-          service_id: 1,
+        callEvent: {
+          callId: 1,
+          serviceId: 1,
           event: 'data',
-          bin_data: encodedResponseData,
+          binData: encodedResponseData,
         },
       });
       call.on('end', () => {
         done();
       });
       client.handleMessage({
-        call_ended: {
-          call_id: 1,
-          service_id: 1,
+        callEnded: {
+          callId: 1,
+          serviceId: 1,
         },
       });
     });
   });
 
   it('should start a rpc call correctly', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     let serviceCreateMsg = recvQueue[0];
-    expect(serviceCreateMsg.service_create.service_id).toBe(1);
+    expect(serviceCreateMsg.serviceCreate.serviceId).toBe(1);
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 0,
-        service_id: serviceCreateMsg.service_create.service_id,
+        serviceId: serviceCreateMsg.serviceCreate.serviceId,
       },
     });
     recvQueue.length = 0;
     let resultAsserted = false;
     servicePromise.then((mockService) => {
       expect(mockService).not.toBe(null);
-      mockService['sayHello']({name: 'test'}, (err: any, response: any) => {
-        expect(response.toRaw()).toEqual({message: 'hello'});
+      mockService['sayHello']({name: 'test'}, (err: any, response: ProtoBuf.Message) => {
+        expect(response.asJSON()).toEqual({message: 'hello'});
         resultAsserted = true;
       });
       expect(recvQueue.length).toBe(1);
-      let msg = recvQueue[0];
+      let msg: any = recvQueue[0];
       recvQueue.length = 0;
-      msg.call_create.info.bin_argument = !!msg.call_create.info.bin_argument;
+      msg.callCreate.info.binArgument = !!msg.callCreate.info.binArgument;
       expect(msg).toEqual({
-        call_create: {
-          call_id: 1,
+        callCreate: {
+          callId: 1,
           info: {
-            method_id: 'SayHello',
-            bin_argument: true,
+            methodId: 'SayHello',
+            binArgument: true,
           },
-          service_id: 1,
+          serviceId: 1,
         },
       });
       client.handleMessage({
-        call_create: {
-          call_id: 1,
+        callCreate: {
+          callId: 1,
           result: 0,
-          service_id: 1,
+          serviceId: 1,
         },
       });
       client.handleMessage({
-        call_event: {
-          call_id: 1,
-          service_id: 1,
+        callEvent: {
+          callId: 1,
+          serviceId: 1,
           event: 'data',
-          bin_data: encodedData,
+          binData: encodedData,
         },
       });
       client.handleMessage({
-        call_ended: {
-          call_id: 1,
-          service_id: 1,
+        callEnded: {
+          callId: 1,
+          serviceId: 1,
         },
       });
       expect(resultAsserted).toBe(true);
@@ -243,41 +251,42 @@ describe('Client', () => {
   });
 
   it('should cancel all calls when calling reset', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 0,
-        service_id: 1,
+        serviceId: 1,
       },
     });
     servicePromise.then((mockService) => {
       expect(mockService).not.toBe(null);
       mockService['sayHelloBidiStream']();
       client.handleMessage({
-        call_create: {
-          call_id: 1,
+        callCreate: {
+          callId: 1,
           result: 0,
-          service_id: 1,
+          serviceId: 1,
         },
       });
       client.handleMessage({
-        call_event: {
-          call_id: 1,
-          service_id: 1,
+        callEvent: {
+          callId: 1,
+          serviceId: 1,
           event: 'data',
-          bin_data: encodedData,
+          binData: encodedData,
         },
       });
       recvQueue.length = 0;
       client.reset();
       expect(recvQueue).toEqual([{
-        call_end: {
-          call_id: 1,
-          service_id: 1,
+        callEnd: {
+          callId: 1,
+          serviceId: 1,
         },
       }, {
-        service_release: {
-          service_id: 1,
+        serviceRelease: {
+          serviceId: 1,
         },
       }]);
       done();
@@ -285,11 +294,12 @@ describe('Client', () => {
   });
 
   it('should handle a create error properly', (done) => {
-    let servicePromise: Promise<IServiceHandle> = serviceTree.mock.Greeter('localhost:3000');
+    let servicePromise: Promise<IServiceHandle> =
+      (<any>lookupTree.lookup('mock.Greeter'))('localhost:3000');
     client.handleMessage({
-      service_create: {
+      serviceCreate: {
         result: 0,
-        service_id: 1,
+        serviceId: 1,
       },
     });
     recvQueue.length = 0;
@@ -301,11 +311,11 @@ describe('Client', () => {
         done();
       });
       client.handleMessage({
-        call_create: {
-          call_id: 1,
-          service_id: 1,
+        callCreate: {
+          callId: 1,
+          serviceId: 1,
           result: 2,
-          error_details: 'Error on server side.',
+          errorDetails: 'Error on server side.',
         },
       });
     });

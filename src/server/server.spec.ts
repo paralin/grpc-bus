@@ -11,7 +11,7 @@ describe('Server', () => {
   let server: Server;
   let serviceInfo: IGBServiceInfo = {
     endpoint: 'localhost:5000',
-    service_id: 'mock.Greeter',
+    serviceId: 'mock.Greeter',
   };
   let recvQueue: IGBServerMessage[] = [];
   let lookupTree: any;
@@ -26,103 +26,102 @@ describe('Server', () => {
       recvQueue.push(msg);
     }, require('grpc'));
     recvQueue.length = 0;
-    let serviceTree = require('grpc').loadObject(lookupTree).build();
-    encodedData = serviceTree.mock.HelloRequest.encode({'name': 'hello'}).toBase64();
-    encodedResponseData = serviceTree.mock.HelloReply.encode({message: 'hello'}).toBase64();
+    encodedData = lookupTree.lookup('mock.HelloRequest').encode({'name': 'hello'}).finish();
+    encodedResponseData = lookupTree.lookup('mock.HelloReply').encode({message: 'hello'}).finish();
   });
 
   it('should create a service correctly', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: serviceInfo,
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: serviceInfo,
     }});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_create).not.toBe(null);
-    if (msg.service_create.error_details) {
-      throw new Error(msg.service_create.error_details);
+    expect(msg.serviceCreate).not.toBe(null);
+    if (msg.serviceCreate.errorDetails) {
+      throw new Error(msg.serviceCreate.errorDetails);
     }
-    expect(msg.service_create.result).toBe(0);
+    expect(msg.serviceCreate.result).toBe(0);
 
     expect(recvQueue.length).toBe(0);
-    server.handleMessage({service_release: {
-      service_id: 1,
+    server.handleMessage({serviceRelease: {
+      serviceId: 1,
     }});
     expect(recvQueue.length).toBe(1);
     msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_release).not.toBe(null);
-    expect(msg.service_release.service_id).toBe(1);
+    expect(msg.serviceRelease).not.toBe(null);
+    expect(msg.serviceRelease.serviceId).toBe(1);
   });
 
   it('should respond with gratuitous releases', () => {
-    server.handleMessage({service_release: {
-      service_id: 50,
+    server.handleMessage({serviceRelease: {
+      serviceId: 50,
     }});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_release).not.toBe(null);
-    expect(msg.service_release.service_id).toBe(50);
+    expect(msg.serviceRelease).not.toBe(null);
+    expect(msg.serviceRelease.serviceId).toBe(50);
   });
 
   it('should filter empty service ids', () => {
-    server.handleMessage({service_create: {}});
+    server.handleMessage({serviceCreate: {}});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_create).not.toBe(null);
-    expect(msg.service_create.error_details).toBe('ID is not set or is already in use.');
+    expect(msg.serviceCreate).not.toBe(null);
+    expect(msg.serviceCreate.errorDetails).toBe('ID is not set or is already in use.');
   });
 
   it('should filter invalid service ids', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: {
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: {
         endpoint: 'localhost:3000',
-        service_id: 'mock',
+        serviceId: 'mock',
       },
     }});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_create).not.toBe(null);
-    expect(msg.service_create.error_details).toBe('TypeError: mock is a Namespace not a Service.');
+    expect(msg.serviceCreate).not.toBe(null);
+    expect(msg.serviceCreate.errorDetails).toBe('TypeError: mock is not a Service.');
   });
 
   it('should filter unknown service ids', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: {
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: {
         endpoint: 'localhost:3000',
-        service_id: 'mock.wow.NotExist',
+        serviceId: 'mock.wow.NotExist',
       },
     }});
     expect(recvQueue.length).toBe(1);
     let msg = recvQueue.splice(0, 1)[0];
-    expect(msg.service_create).not.toBe(null);
-    expect(msg.service_create.error_details).toBe('TypeError: mock.wow.NotExist was not found.');
+    expect(msg.serviceCreate).not.toBe(null);
+    expect(msg.serviceCreate.errorDetails).toBe('TypeError: mock.wow.NotExist was not found.');
   });
 
   it('should start a call correctly', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: {
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: {
         endpoint: 'localhost:3000',
-        service_id: 'mock.Greeter',
+        serviceId: 'mock.Greeter',
       },
     }});
     recvQueue.length = 0;
     server.handleMessage({
-      call_create: {
-        call_id: 1,
-        service_id: 1,
+      callCreate: {
+        callId: 1,
+        serviceId: 1,
         info: {
-          method_id: 'SayHello',
-          bin_argument: encodedData,
+          methodId: 'SayHello',
+          binArgument: encodedData,
         },
       },
     });
     expect(recvQueue).toEqual([{
-      call_create: {
-        call_id: 1,
-        service_id: 1,
+      callCreate: {
+        callId: 1,
+        serviceId: 1,
         result: 0,
       },
     }]);
@@ -130,68 +129,68 @@ describe('Server', () => {
   });
 
   it('should start a streaming call correctly', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: {
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: {
         endpoint: 'localhost:3000',
-        service_id: 'mock.Greeter',
+        serviceId: 'mock.Greeter',
       },
     }});
     recvQueue.length = 0;
     server.handleMessage({
-      call_create: {
-        call_id: 1,
-        service_id: 1,
+      callCreate: {
+        callId: 1,
+        serviceId: 1,
         info: {
-          method_id: 'SayHelloBidiStream',
+          methodId: 'SayHelloBidiStream',
         },
       },
     });
     expect(recvQueue).toEqual([{
-      call_create: {
-        call_id: 1,
-        service_id: 1,
+      callCreate: {
+        callId: 1,
+        serviceId: 1,
         result: 0,
       },
     }]);
     recvQueue.length = 0;
     server.handleMessage({
-      call_send: {
-        call_id: 1,
-        service_id: 1,
-        bin_data: encodedData,
+      callSend: {
+        callId: 1,
+        serviceId: 1,
+        binData: encodedData,
       },
     });
     expect(recvQueue.length).toBe(0);
   });
 
   it('should dispose properly', () => {
-    server.handleMessage({service_create: {
-      service_id: 1,
-      service_info: {
+    server.handleMessage({serviceCreate: {
+      serviceId: 1,
+      serviceInfo: {
         endpoint: 'localhost:3000',
-        service_id: 'mock.Greeter',
+        serviceId: 'mock.Greeter',
       },
     }});
     server.handleMessage({
-      call_create: {
-        call_id: 1,
+      callCreate: {
+        callId: 1,
         info: {
-          method_id: 'SayHelloBidiStream',
+          methodId: 'SayHelloBidiStream',
         },
-        service_id: 1,
+        serviceId: 1,
       },
     });
     recvQueue.length = 0;
     server.dispose();
     expect(recvQueue).toEqual([{
-      call_ended: {
-        call_id: 1,
-        service_id: 1,
+      callEnded: {
+        callId: 1,
+        serviceId: 1,
       },
     }, {
-      service_release: {
-        service_id: 1,
+      serviceRelease: {
+        serviceId: 1,
       },
     }]);
   });

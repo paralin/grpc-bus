@@ -2,397 +2,260 @@
 /* tslint:disable:quotemark */
 /* tslint:disable:max-line-length */
 export const PROTO_DEFINITIONS = {
-    "package": "grpcbus",
-    "syntax": "proto3",
-    "messages": [
-        {
-            "name": "GBClientMessage",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "GBCreateService",
-                    "name": "service_create",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBReleaseService",
-                    "name": "service_release",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCreateCall",
-                    "name": "call_create",
-                    "id": 3
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCallEnd",
-                    "name": "call_end",
-                    "id": 4
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBSendCall",
-                    "name": "call_send",
-                    "id": 5
-                }
-            ],
-            "syntax": "proto3"
+  "nested": {
+    "grpcbus": {
+      "nested": {
+        "GBClientMessage": {
+          "fields": {
+            "serviceCreate": {
+              "type": "GBCreateService",
+              "id": 1
+            },
+            "serviceRelease": {
+              "type": "GBReleaseService",
+              "id": 2
+            },
+            "callCreate": {
+              "type": "GBCreateCall",
+              "id": 3
+            },
+            "callEnd": {
+              "type": "GBCallEnd",
+              "id": 4
+            },
+            "callSend": {
+              "type": "GBSendCall",
+              "id": 5
+            }
+          }
         },
-        {
-            "name": "GBServerMessage",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "GBCreateServiceResult",
-                    "name": "service_create",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBReleaseServiceResult",
-                    "name": "service_release",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCreateCallResult",
-                    "name": "call_create",
-                    "id": 3
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCallEvent",
-                    "name": "call_event",
-                    "id": 4
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCallEnded",
-                    "name": "call_ended",
-                    "id": 5
-                }
-            ],
-            "syntax": "proto3"
+        "GBServerMessage": {
+          "fields": {
+            "serviceCreate": {
+              "type": "GBCreateServiceResult",
+              "id": 1
+            },
+            "serviceRelease": {
+              "type": "GBReleaseServiceResult",
+              "id": 2
+            },
+            "callCreate": {
+              "type": "GBCreateCallResult",
+              "id": 3
+            },
+            "callEvent": {
+              "type": "GBCallEvent",
+              "id": 4
+            },
+            "callEnded": {
+              "type": "GBCallEnded",
+              "id": 5
+            }
+          }
         },
-        {
-            "name": "GBServiceInfo",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "endpoint",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "service_id",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBServiceInfo": {
+          "fields": {
+            "endpoint": {
+              "type": "string",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "string",
+              "id": 2
+            }
+          }
         },
-        {
-            "name": "GBCreateService",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBServiceInfo",
-                    "name": "service_info",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBCreateService": {
+          "fields": {
+            "serviceId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceInfo": {
+              "type": "GBServiceInfo",
+              "id": 2
+            }
+          }
         },
-        {
-            "name": "GBReleaseService",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 1
-                }
-            ],
-            "syntax": "proto3"
+        "GBReleaseService": {
+          "fields": {
+            "serviceId": {
+              "type": "int32",
+              "id": 1
+            }
+          }
         },
-        {
-            "name": "GBCallInfo",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "method_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "bytes",
-                    "name": "bin_argument",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBCallInfo": {
+          "fields": {
+            "methodId": {
+              "type": "string",
+              "id": 1
+            },
+            "binArgument": {
+              "type": "bytes",
+              "id": 2
+            }
+          }
         },
-        {
-            "name": "GBCreateCall",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "GBCallInfo",
-                    "name": "info",
-                    "id": 3
-                }
-            ],
-            "syntax": "proto3"
+        "GBCreateCall": {
+          "fields": {
+            "serviceId": {
+              "type": "int32",
+              "id": 1
+            },
+            "callId": {
+              "type": "int32",
+              "id": 2
+            },
+            "info": {
+              "type": "GBCallInfo",
+              "id": 3
+            }
+          }
         },
-        {
-            "name": "GBCallEnded",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBCallEnded": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 2
+            }
+          }
         },
-        {
-            "name": "GBEndCall",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBEndCall": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 2
+            }
+          }
         },
-        {
-            "name": "GBSendCall",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "bytes",
-                    "name": "bin_data",
-                    "id": 3
-                },
-                {
-                    "rule": "optional",
-                    "type": "bool",
-                    "name": "is_end",
-                    "id": 4
-                }
-            ],
-            "syntax": "proto3"
+        "GBSendCall": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 2
+            },
+            "binData": {
+              "type": "bytes",
+              "id": 3
+            },
+            "isEnd": {
+              "type": "bool",
+              "id": 4
+            }
+          }
         },
-        {
-            "name": "GBCreateServiceResult",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "ECreateServiceResult",
-                    "name": "result",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "error_details",
-                    "id": 3
-                }
-            ],
-            "syntax": "proto3",
-            "enums": [
-                {
-                    "name": "ECreateServiceResult",
-                    "values": [
-                        {
-                            "name": "SUCCESS",
-                            "id": 0
-                        },
-                        {
-                            "name": "INVALID_ID",
-                            "id": 1
-                        },
-                        {
-                            "name": "GRPC_ERROR",
-                            "id": 2
-                        }
-                    ],
-                    "syntax": "proto3"
-                }
-            ]
+        "GBCreateServiceResult": {
+          "fields": {
+            "serviceId": {
+              "type": "int32",
+              "id": 1
+            },
+            "result": {
+              "type": "ECreateServiceResult",
+              "id": 2
+            },
+            "errorDetails": {
+              "type": "string",
+              "id": 3
+            }
+          },
+          "nested": {
+            "ECreateServiceResult": {
+              "values": {
+                "SUCCESS": 0,
+                "INVALID_ID": 1,
+                "GRPC_ERROR": 2
+              }
+            }
+          }
         },
-        {
-            "name": "GBReleaseServiceResult",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 1
-                }
-            ],
-            "syntax": "proto3"
+        "GBReleaseServiceResult": {
+          "fields": {
+            "serviceId": {
+              "type": "int32",
+              "id": 1
+            }
+          }
         },
-        {
-            "name": "GBCreateCallResult",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 4
-                },
-                {
-                    "rule": "optional",
-                    "type": "ECreateCallResult",
-                    "name": "result",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "error_details",
-                    "id": 3
-                }
-            ],
-            "syntax": "proto3",
-            "enums": [
-                {
-                    "name": "ECreateCallResult",
-                    "values": [
-                        {
-                            "name": "SUCCESS",
-                            "id": 0
-                        },
-                        {
-                            "name": "INVALID_ID",
-                            "id": 1
-                        },
-                        {
-                            "name": "GRPC_ERROR",
-                            "id": 2
-                        }
-                    ],
-                    "syntax": "proto3"
-                }
-            ]
+        "GBCreateCallResult": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 4
+            },
+            "result": {
+              "type": "ECreateCallResult",
+              "id": 2
+            },
+            "errorDetails": {
+              "type": "string",
+              "id": 3
+            }
+          },
+          "nested": {
+            "ECreateCallResult": {
+              "values": {
+                "SUCCESS": 0,
+                "INVALID_ID": 1,
+                "GRPC_ERROR": 2
+              }
+            }
+          }
         },
-        {
-            "name": "GBCallEvent",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 4
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "event",
-                    "id": 2
-                },
-                {
-                    "rule": "optional",
-                    "type": "string",
-                    "name": "json_data",
-                    "id": 3
-                },
-                {
-                    "rule": "optional",
-                    "type": "bytes",
-                    "name": "bin_data",
-                    "id": 5
-                }
-            ],
-            "syntax": "proto3"
+        "GBCallEvent": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 4
+            },
+            "event": {
+              "type": "string",
+              "id": 2
+            },
+            "jsonData": {
+              "type": "string",
+              "id": 3
+            },
+            "binData": {
+              "type": "bytes",
+              "id": 5
+            }
+          }
         },
-        {
-            "name": "GBCallEnd",
-            "fields": [
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "call_id",
-                    "id": 1
-                },
-                {
-                    "rule": "optional",
-                    "type": "int32",
-                    "name": "service_id",
-                    "id": 2
-                }
-            ],
-            "syntax": "proto3"
+        "GBCallEnd": {
+          "fields": {
+            "callId": {
+              "type": "int32",
+              "id": 1
+            },
+            "serviceId": {
+              "type": "int32",
+              "id": 2
+            }
+          }
         }
-    ],
-    "isNamespace": true
+      }
+    }
+  }
 };

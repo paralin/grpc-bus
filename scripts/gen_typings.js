@@ -16,8 +16,7 @@ const typeMap = {
   "sfixed32": "number",
   "sfixed64": "number",
   "bool": "boolean",
-  // base64? XXX
-  "bytes": "any",
+  "bytes": "Uint8Array",
 };
 
 function buildTypings(defs) {
@@ -65,7 +64,7 @@ function buildTypings(defs) {
       } else if (field.rule === "map") {
         typ = `{ [key: string]: ${typ} }`;
       }
-      result += "  " + fieldn + (field.rule === "optional" ? "?" : "") + ": " + typ + ";\n";
+      result += "  " + fieldn + ([undefined, "map", "repeated"].indexOf(field.rule) !== -1 ? "?" : "") + ": " + typ + ";\n";
     }
     result += "}\n\n";
   }
