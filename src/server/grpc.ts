@@ -1,6 +1,7 @@
 // GRPC methods copied from the GRPC codebase.
 // This is to not have a dependence on grpc at runtime in this library.
 import * as _ from 'lodash';
+import * as ProtoBuf from 'protobufjs';
 
 // Service object passed to makeClientConstructor
 // https://github.com/grpc/grpc/issues/8727
@@ -45,16 +46,24 @@ function ensureBuffer(inp: any): Buffer {
   return inp;
 }
 
-export function getPassthroughServiceAttrs(service: any, options: any): IGRPCServiceObject {
+export function getPassthroughServiceAttrs(service: ProtoBuf.Service,
+                                           options: any): IGRPCServiceObject {
   let prefix = '/' + fullyQualifiedName(service) + '/';
   let res: IGRPCServiceObject = {};
-  for (let method of service.children) {
+  if (!service.resolved) {
+    service.resolveAll();
+  }
+  for (let methodName in service.methods) {
+    if (!service.methods.hasOwnProperty(methodName)) {
+      continue;
+    }
+    let method = service.methods[methodName];
     res[_.camelCase(method.name)] = {
       path: prefix + method.name,
-      requestStream: method.requestStream,
-      responseStream: method.responseStream,
-      requestType: method.requestType,
-      responseType: method.responseType,
+      requestStream: !!method.requestStream,
+      responseStream: !!method.responseStream,
+      requestType: method.resolvedRequestType,
+      responseType: method.resolvedResponseType,
       requestSerialize: ensureBuffer,
       requestDeserialize: _.identity,
       responseSerialize: ensureBuffer,
@@ -64,7 +73,7 @@ export function getPassthroughServiceAttrs(service: any, options: any): IGRPCSer
   return res;
 }
 
-export function makePassthroughClientConstructor(grpc: any, service: any, options: any): any {
+export function makePassthroughClientConstructor(grpc: any, service: any, options?: any): any {
   let methodAttrs = getPassthroughServiceAttrs(service, options);
   let Client = grpc.makeGenericClientConstructor(
     methodAttrs, fullyQualifiedName(service),
@@ -73,21 +82,4 @@ export function makePassthroughClientConstructor(grpc: any, service: any, option
   Client.service = service;
   Client.service.grpc_options = options;
   return Client;
-}
-
-// Modified loadObject that removes deserialization.
-export function loadObject(grpc: any, meta: any, options?: any): any {
-  let result: any = {};
-  if (meta.className === 'Namespace') {
-    _.each(meta.children, (child: any) => {
-      result[child.name] = loadObject(grpc, child, options);
-    });
-    return result;
-  } else if (meta.className === 'Service') {
-    return makePassthroughClientConstructor(grpc, meta, options);
-  } else if (meta.className === 'Message' || meta.className === 'Enum') {
-    return meta.build();
-  } else {
-    return meta;
-  }
 }

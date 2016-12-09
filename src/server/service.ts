@@ -3,9 +3,10 @@ import {
   IGBServiceInfo,
 } from '../proto';
 import {
-  loadObject,
+  makePassthroughClientConstructor,
 } from './grpc';
 
+import * as ProtoBuf from 'protobufjs';
 import * as _ from 'lodash';
 
 // A stored service.
@@ -15,13 +16,13 @@ export class Service {
   // GRPC service stub
   public stub: any;
   // Service metadata
-  public serviceTree: any;
+  public serviceMeta: ProtoBuf.Service;
   // Service info
   private info: IGBServiceInfo;
   // List of client service IDs corresponding to this service.
   private clientIds: number[];
 
-  constructor(private protoTree: any,
+  constructor(private protoRoot: ProtoBuf.Root,
               clientId: number,
               info: IGBServiceInfo,
               // Pass require('grpc') as an argument.
@@ -31,25 +32,16 @@ export class Service {
   }
 
   public initStub() {
-    let serv = this.protoTree.lookup(this.info.service_id);
+    let serv: ProtoBuf.Service = <any>this.protoRoot.lookup(this.info.serviceId);
     if (!serv) {
-      throw new TypeError(this.info.service_id + ' was not found.');
+      throw new TypeError(this.info.serviceId + ' was not found.');
     }
-    if (serv.className !== 'Service') {
-      throw new TypeError(this.info.service_id + ' is a ' + serv.className + ' not a Service.');
+    if (!serv.methods || !Object.keys(serv.methods).length) {
+      throw new TypeError(this.info.serviceId + ' is not a Service.');
     }
-    let stubctr = loadObject(this.grpc, serv);
+    let stubctr = makePassthroughClientConstructor(this.grpc, serv);
     this.stub = new stubctr(this.info.endpoint, this.grpc.credentials.createInsecure());
-    this.serviceTree = serv;
-  }
-
-  public lookupMethod(methodId: string): any {
-    for (let child of this.serviceTree.children) {
-      if (child.name === methodId) {
-        return child;
-      }
-    }
-    return null;
+    this.serviceMeta = serv;
   }
 
   public clientAdd(id: number) {
