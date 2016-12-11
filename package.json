@@ -38,7 +38,7 @@
     "istanbul": "^1.1.0-alpha.1",
     "jasmine": "^2.5.0",
     "jasmine-console-reporter": "^1.2.0",
-    "protobufjs": "^5.0.0",
+    "protobufjs": "^6.1.0",
     "ts-node": "^1.7.0",
     "tslint": "^4.0.0",
     "typescript": "^2.1.0"
