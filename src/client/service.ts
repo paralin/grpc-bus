@@ -12,6 +12,7 @@ import {
   Subject,
 } from 'rxjs/Subject';
 import { Call, ICallHandle } from './call';
+import * as ProtoBuf from 'protobufjs';
 
 export interface IServicePromise {
   resolve: (handle: IServiceHandle) => void;
@@ -31,41 +32,30 @@ export interface IServiceHandle {
 export class Service {
   public disposed: Subject<Service> = new Subject<Service>();
   public handle: IServiceHandle;
-  private serviceMeta: any;
 
   private calls: { [id: number]: Call } = {};
   private callIdCounter: number = 1;
   private serverReleased: boolean = false;
 
-  constructor(private protoTree: any,
+  constructor(private serviceMeta: ProtoBuf.Service,
               private clientId: number,
               private info: IGBServiceInfo,
               private promise: IServicePromise,
               private send: (message: IGBClientMessage) => void) {
+    serviceMeta.resolveAll();
   }
 
   public initStub() {
-    this.serviceMeta = this.protoTree.lookup(this.info.service_id);
     this.handle = {
       end: () => {
         return this.end();
       },
     };
-    if (!this.serviceMeta) {
-      throw new Error('Cannot find identifier ' + this.info.service_id + '.');
-    }
-    if (this.serviceMeta.className !== 'Service') {
-      throw new Error('Identifier '
-                      + this.info.service_id
-                      + ' is a '
-                      + this.serviceMeta.className
-                      + ' not a Service.');
-    }
-    for (let method of this.serviceMeta.children) {
-      if (method.className !== 'Service.RPCMethod') {
+    for (let methodId in this.serviceMeta.methods) {
+      if (!this.serviceMeta.methods.hasOwnProperty(methodId)) {
         continue;
       }
-      this.buildStubMethod(method);
+      this.buildStubMethod(this.serviceMeta.methods[methodId]);
     }
   }
 
@@ -80,8 +70,8 @@ export class Service {
       return;
     }
 
-    if (msg.error_details) {
-      this.promise.reject(msg.error_details);
+    if (msg.errorDetails) {
+      this.promise.reject(msg.errorDetails);
     } else {
       this.promise.reject('Error ' + msg.result);
     }
@@ -90,7 +80,7 @@ export class Service {
   }
 
   public handleCallCreateResponse(msg: IGBCreateCallResult) {
-    let call = this.calls[msg.call_id];
+    let call = this.calls[msg.callId];
     /* istanbul ignore next */
     if (!call) {
       return;
@@ -99,7 +89,7 @@ export class Service {
   }
 
   public handleCallEnded(msg: IGBCallEnded) {
-    let call = this.calls[msg.call_id];
+    let call = this.calls[msg.callId];
     /* istanbul ignore next */
     if (!call) {
       return;
@@ -108,7 +98,7 @@ export class Service {
   }
 
   public handleCallEvent(msg: IGBCallEvent) {
-    let call = this.calls[msg.call_id];
+    let call = this.calls[msg.callId];
     /* istanbul ignore next */
     if (!call) {
       return;
@@ -137,16 +127,15 @@ export class Service {
     this.calls = {};
     if (!this.serverReleased) {
       this.send({
-        service_release: {
-          service_id: this.clientId,
+        serviceRelease: {
+          serviceId: this.clientId,
         },
       });
     }
     this.disposed.next(this);
   }
 
-  private buildStubMethod(methodMeta: any) {
-    // lowercase first letter
+  private buildStubMethod(methodMeta: ProtoBuf.Method) {
     let methodName = methodMeta.name.charAt(0).toLowerCase() + methodMeta.name.slice(1);
     this.handle[methodName] = (argument?: any,
                                callback?: (error?: any, response?: any) => void) => {
@@ -158,18 +147,18 @@ export class Service {
     };
   }
 
-  private startCall(methodMeta: any,
+  private startCall(methodMeta: ProtoBuf.Method,
                     argument?: any,
                     callback?: (error?: any, response?: any) => void): ICallHandle {
     let callId = this.callIdCounter++;
     let args: any;
-    let requestBuilder = methodMeta.resolvedRequestType.build();
     if (argument) {
-      args = requestBuilder.encode(argument);
+      let requestBuilder = methodMeta.resolvedRequestType;
+      args = requestBuilder.encode(argument).finish();
     }
     let info: IGBCallInfo = {
-      method_id: methodMeta.name,
-      bin_argument: args,
+      methodId: methodMeta.name,
+      binArgument: args,
     };
     if (methodMeta.requestStream && argument) {
       throw new Error('Argument should not be specified for a request stream.');
@@ -189,10 +178,10 @@ export class Service {
       delete this.calls[callId];
     });
     this.send({
-      call_create: {
-        call_id: callId,
+      callCreate: {
+        callId: callId,
         info: info,
-        service_id: this.clientId,
+        serviceId: this.clientId,
       },
     });
     return call;

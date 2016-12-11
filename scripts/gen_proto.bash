@@ -12,14 +12,6 @@ if [ ! -d "./scripts" ]; then
   exit 0
 fi
 
-# Check if we need to update pbjs
-# https://github.com/dcodeIO/protobuf.js/pull/470
-if ! grep -q "\"request_stream\": mtd.requestStream," ./node_modules/protobufjs/cli/pbjs/targets/json.js ; then
-  echo "Updating protobuf.js to tip..."
-  echo " -> see https://github.com/dcodeIO/protobuf.js/pull/470"
-  npm install github:dcodeIO/protobuf.js\#f2661c32e
-fi
-
 write_definitions() {
   JSON_PATH=$1
   DEFS_PATH=$2
@@ -40,7 +32,6 @@ ${PBJS} \
   -t json \
   ./proto/grpc-bus.proto > \
   ${JSON_OUTPUT_PATH}
-sed -i -e "s/proto2/proto3/g" $JSON_OUTPUT_PATH
 
 write_definitions ${JSON_OUTPUT_PATH} \
   ./src/proto/definitions.ts \
@@ -53,7 +44,6 @@ ${PBJS} \
   -t json \
   ./proto/mock.proto > \
   ${JSON_OUTPUT_PATH}
-sed -i -e "s/proto2/proto3/g" $JSON_OUTPUT_PATH
 
 write_definitions ${JSON_OUTPUT_PATH} \
   ./src/mock/definitions.ts \

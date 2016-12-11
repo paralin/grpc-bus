@@ -11,37 +11,38 @@ import {
   IGBEndCall,
 } from '../proto';
 
+import * as ProtoBuf from 'protobufjs';
+
 // A server for a remote client.
 export class Server {
   // Store of remote services
-  // tslint:disable-next-line
   private store: ServiceStore;
 
   // Map of known client IDs to services.
   private clientIdToService: { [id: number]: CallStore } = {};
 
-  public constructor(private protoTree: any,
+  public constructor(private protoRoot: ProtoBuf.Root,
                      private send: (message: IGBServerMessage) => void,
                      // Pass require('grpc')
                      private grpc: any) {
-    this.store = new ServiceStore(protoTree, this.grpc);
+    this.store = new ServiceStore(protoRoot, this.grpc);
   }
 
   public handleMessage(message: IGBClientMessage) {
-    if (message.service_create) {
-      this.handleServiceCreate(message.service_create);
+    if (message.serviceCreate) {
+      this.handleServiceCreate(message.serviceCreate);
     }
-    if (message.service_release) {
-      this.handleServiceRelease(message.service_release);
+    if (message.serviceRelease) {
+      this.handleServiceRelease(message.serviceRelease);
     }
-    if (message.call_create) {
-      this.handleCallCreate(message.call_create);
+    if (message.callCreate) {
+      this.handleCallCreate(message.callCreate);
     }
-    if (message.call_end) {
-      this.handleCallEnd(message.call_end);
+    if (message.callEnd) {
+      this.handleCallEnd(message.callEnd);
     }
-    if (message.call_send) {
-      this.handleCallSend(message.call_send);
+    if (message.callSend) {
+      this.handleCallSend(message.callSend);
     }
   }
 
@@ -66,66 +67,66 @@ export class Server {
     if (sendGratuitous) {
       // Inform the client the service has been released
       this.send({
-        service_release: {
-          service_id: serviceId,
+        serviceRelease: {
+          serviceId: serviceId,
         },
       });
     }
   }
 
   private handleServiceCreate(msg: IGBCreateService) {
-    let serviceId = msg.service_id;
+    let serviceId = msg.serviceId;
     let result: IGBCreateServiceResult = {
-      service_id: msg.service_id,
+      serviceId: msg.serviceId,
       result: 0,
     };
-    if (typeof msg.service_id !== 'number' || this.clientIdToService[msg.service_id]) {
+    if (typeof msg.serviceId !== 'number' || this.clientIdToService[msg.serviceId]) {
       // todo: fix enums
       result.result = 1;
-      result.error_details = 'ID is not set or is already in use.';
+      result.errorDetails = 'ID is not set or is already in use.';
     } else {
       try {
-        let serv = this.store.getService(msg.service_id, msg.service_info);
+        let serv = this.store.getService(msg.serviceId, msg.serviceInfo);
         // Here, we may get an error thrown if the info is invalid.
         serv.initStub();
         // When the service is disposed, also dispose the client service.
         serv.disposed.subscribe(() => {
           this.releaseLocalService(serviceId, false);
         });
-        this.clientIdToService[serviceId] = new CallStore(serv, msg.service_id, this.send);
+        this.clientIdToService[serviceId] = new CallStore(serv, msg.serviceId, this.send);
       } catch (e) {
         result.result = 2;
-        result.error_details = e.toString();
+        result.errorDetails = e.toString();
       }
     }
 
     this.send({
-      service_create: result,
+      serviceCreate: result,
     });
   }
 
   private handleServiceRelease(msg: IGBReleaseService) {
-    this.releaseLocalService(msg.service_id);
+    this.releaseLocalService(msg.serviceId);
   }
 
   private handleCallSend(msg: IGBSendCall) {
-    let svc = this.clientIdToService[msg.service_id];
+    let svc = this.clientIdToService[msg.serviceId];
     if (!svc) {
-      this.releaseLocalService(msg.service_id, true);
+      this.releaseLocalService(msg.serviceId, true);
       return;
     }
     svc.handleCallWrite(msg);
   }
 
   private handleCallCreate(msg: IGBCreateCall) {
-    let svc = this.clientIdToService[msg.service_id];
+    let svc = this.clientIdToService[msg.serviceId];
     if (!svc) {
       this.send({
-        call_create: {
+        callCreate: {
           result: 1,
-          service_id: msg.service_id,
-          call_id: msg.call_id,
-          error_details: 'Service ID not found.',
+          serviceId: msg.serviceId,
+          callId: msg.callId,
+          errorDetails: 'Service ID not found.',
         },
       });
       return;
@@ -134,7 +135,7 @@ export class Server {
   }
 
   private handleCallEnd(msg: IGBEndCall) {
-    let svc = this.clientIdToService[msg.service_id];
+    let svc = this.clientIdToService[msg.serviceId];
     if (svc) {
       svc.handleCallEnd(msg);
     }

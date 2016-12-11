@@ -19,36 +19,36 @@ export class CallStore {
 
   public initCall(msg: IGBCreateCall) {
     let result: IGBCreateCallResult = {
-      call_id: msg.call_id,
-      service_id: msg.service_id,
+      callId: msg.callId,
+      serviceId: msg.serviceId,
       result: 0,
     };
-    if (typeof msg.call_id !== 'number' || this.calls[msg.call_id]) {
+    if (typeof msg.callId !== 'number' || this.calls[msg.callId]) {
       // todo: fix enums
       result.result = 1;
-      result.error_details = 'ID is not set or is already in use.';
+      result.errorDetails = 'ID is not set or is already in use.';
     } else {
       try {
-        let callId = msg.call_id;
-        let call = new Call(this.service, msg.call_id, msg.service_id, msg.info, this.send);
+        let callId = msg.callId;
+        let call = new Call(this.service, msg.callId, msg.serviceId, msg.info, this.send);
         call.initCall();
-        this.calls[msg.call_id] = call;
+        this.calls[msg.callId] = call;
         call.disposed.subscribe(() => {
           this.releaseLocalCall(callId);
         });
       } catch (e) {
         result.result = 2;
-        result.error_details = e.toString();
+        result.errorDetails = e.toString();
       }
     }
 
     this.send({
-      call_create: result,
+      callCreate: result,
     });
   }
 
   public handleCallEnd(msg: IGBEndCall) {
-    let call = this.calls[msg.call_id];
+    let call = this.calls[msg.callId];
     if (!call) {
       return;
     }
@@ -56,14 +56,14 @@ export class CallStore {
   }
 
   public handleCallWrite(msg: IGBSendCall) {
-    let call = this.calls[msg.call_id];
+    let call = this.calls[msg.callId];
     if (!call) {
       return;
     }
-    if (msg.is_end) {
+    if (msg.isEnd) {
       call.sendEnd();
     } else {
-      call.write(msg.bin_data);
+      call.write(msg.binData);
     }
   }
 

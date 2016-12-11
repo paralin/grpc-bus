@@ -6,6 +6,7 @@ import {
   IGBClientMessage,
 } from '../proto';
 import { Subject } from 'rxjs/Subject';
+import * as ProtoBuf from 'protobufjs';
 
 export interface ICallHandle {
   // Send a message on a streaming call
@@ -28,17 +29,17 @@ export class Call implements ICallHandle {
   public disposed: Subject<Call> = new Subject<Call>();
   private eventHandlers: { [id: string]: ((arg: any) => void)[] } = {};
   private endEmitted: boolean = false;
-  private responseBuilder: any;
-  private requestBuilder: any;
+  private responseBuilder: ProtoBuf.Type;
+  private requestBuilder: ProtoBuf.Type;
 
   constructor(public clientId: number,
               public clientServiceId: number,
               private info: IGBCallInfo,
-              private callMeta: any,
+              private callMeta: ProtoBuf.Method,
               private callback: (error?: any, response?: any) => void,
               private send: (message: IGBClientMessage) => void) {
-    this.requestBuilder = callMeta.resolvedRequestType.build();
-    this.responseBuilder = callMeta.resolvedResponseType.build();
+    this.requestBuilder = callMeta.resolvedRequestType;
+    this.responseBuilder = callMeta.resolvedResponseType;
   }
 
   public on(eventId: string, callback: (arg: any) => void): void {
@@ -58,8 +59,8 @@ export class Call implements ICallHandle {
     if (msg.result === 0) {
       return;
     }
-    if (msg.error_details && msg.error_details.length) {
-      this.terminateWithError(msg.error_details);
+    if (msg.errorDetails && msg.errorDetails.length) {
+      this.terminateWithError(msg.errorDetails);
     } else {
       this.terminateWithError('Error ' + msg.result);
     }
@@ -71,10 +72,10 @@ export class Call implements ICallHandle {
 
   public handleEvent(msg: IGBCallEvent) {
     let data: any = null;
-    if (msg.json_data && msg.json_data.length) {
-      data = JSON.parse(msg.json_data);
-    } else if (msg.bin_data && (msg.bin_data.limit || msg.bin_data.length)) {
-      data = this.decodeResponseData(msg.bin_data);
+    if (msg.jsonData && msg.jsonData.length) {
+      data = JSON.parse(msg.jsonData);
+    } else if (msg.binData && msg.binData.length) {
+      data = this.decodeResponseData(msg.binData);
     }
     this.emit(msg.event, data);
     if (this.callback) {
@@ -88,19 +89,19 @@ export class Call implements ICallHandle {
 
   public end() {
     this.send({
-      call_send: {
-        call_id: this.clientId,
-        service_id: this.clientServiceId,
-        is_end: true,
+      callSend: {
+        callId: this.clientId,
+        serviceId: this.clientServiceId,
+        isEnd: true,
       },
     });
   }
 
   public terminate() {
     this.send({
-      call_end: {
-        call_id: this.clientId,
-        service_id: this.clientServiceId,
+      callEnd: {
+        callId: this.clientId,
+        serviceId: this.clientServiceId,
       },
     });
     this.dispose();
@@ -114,10 +115,10 @@ export class Call implements ICallHandle {
       throw new Error('Can only write objects to streaming requests.');
     }
     this.send({
-      call_send: {
-        call_id: this.clientId,
-        service_id: this.clientServiceId,
-        bin_data: this.requestBuilder.encode(msg),
+      callSend: {
+        callId: this.clientId,
+        serviceId: this.clientServiceId,
+        binData: this.requestBuilder.encode(msg).finish(),
       },
     });
   }

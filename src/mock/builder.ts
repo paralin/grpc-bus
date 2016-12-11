@@ -1,6 +1,6 @@
 import { PROTO_DEFINITIONS } from './definitions';
+import * as ProtoBuf from 'protobufjs';
 
-let ProtoBuf = require('protobufjs');
-export function buildTree(): any {
-  return ProtoBuf.loadJson(JSON.stringify(PROTO_DEFINITIONS));
+export function buildTree(): ProtoBuf.Root {
+  return ProtoBuf.Root.fromJSON(PROTO_DEFINITIONS);
 }

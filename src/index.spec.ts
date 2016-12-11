@@ -4,13 +4,13 @@ import {
   IGBClientMessage,
   IGBServerMessage,
   IServiceHandle,
-  IGRPCTree,
 } from './index';
 import { buildTree, MockServer } from './mock';
+import * as ProtoBuf from 'protobufjs';
 
 let grpc = require('grpc');
-let mockProtoDefs = buildTree();
-let mockProto = grpc.loadObject(mockProtoDefs.lookup(''));
+let mockProto = grpc.loadObject(buildTree());
+let localAddress = '127.0.0.1:50235';
 
 describe('e2e', () => {
   let grpcServer: any;
@@ -20,36 +20,43 @@ describe('e2e', () => {
   let gbServer: Server;
 
   let gbClientService: IServiceHandle;
-  let gbTree: IGRPCTree;
+  let gbTree: ProtoBuf.Root;
 
   beforeEach((done) => {
     grpcServer = new grpc.Server();
     mockServer = new MockServer();
-    grpcServer.addProtoService(mockProto.mock.Greeter.service, mockServer);
-    grpcServer.bind('0.0.0.0:50053', grpc.ServerCredentials.createInsecure());
+
+    grpcServer.addProtoService((<any>mockProto.lookup('mock.Greeter')).service, mockServer);
+    grpcServer.bind(localAddress, grpc.ServerCredentials.createInsecure());
     grpcServer.start();
 
-    gbClient = new Client(mockProtoDefs, (msg: IGBClientMessage) => {
+    gbClient = new Client(buildTree(), (msg: IGBClientMessage) => {
       gbServer.handleMessage(msg);
     });
-    gbServer = new Server(mockProtoDefs, (msg: IGBServerMessage) => {
+    gbServer = new Server(buildTree(), (msg: IGBServerMessage) => {
       gbClient.handleMessage(msg);
     }, require('grpc'));
 
-    gbTree = <IGRPCTree>gbClient.buildTree();
-    let svcPromise: Promise<IServiceHandle> = gbTree['mock']['Greeter']('localhost:50053');
+    gbTree = gbClient.root;
+    let svcPromise: Promise<IServiceHandle> =
+      (<any>gbTree.lookup('mock.Greeter'))(localAddress);
     svcPromise.then((svc) => {
       gbClientService = svc;
       done();
-    }, done);
+    }, (err) => {
+      throw err;
+    });
   });
 
-  afterEach(() => {
+  afterEach((done) => {
     gbClientService.end();
-    grpcServer.forceShutdown();
-    mockServer = grpcServer = null;
     gbClient.reset();
     gbServer.dispose();
+    grpcServer.forceShutdown();
+    mockServer = grpcServer = null;
+    setTimeout(() => {
+      done();
+    }, 100);
   });
 
   it('should make a non-streaming call properly', (done) => {
@@ -85,7 +92,7 @@ describe('e2e', () => {
     let call = gbClientService['sayHelloBidiStream']();
     call.on('data', (data) => {
       // buggy expect
-      expect(data.toRaw()).toEqual({message: 'FailFish'});
+      expect(data.asJSON()).toEqual({message: 'FailFish'});
     });
     call.on('error', done);
     call.on('end', () => {
@@ -101,7 +108,7 @@ describe('e2e', () => {
     });
     let call = gbClientService['sayHelloServerStream']({name: 'FailFish'});
     call.on('data', (data) => {
-      expect(data.toRaw()).toEqual({message: 'Hello'});
+      expect(data.asJSON()).toEqual({message: 'Hello'});
     });
     call.on('error', (err) => {
       throw err;
