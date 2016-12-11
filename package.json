@@ -1,10 +1,14 @@
 {
   "name": "grpc-bus",
+  "homepage": "https://github.com/paralin/grpc-bus#readme",
   "description": "Call GRPC services (even streams!) from the browser.",
   "author": "Christian Stewart <christian@paral.in>",
+  "license": "MIT",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/paralin/grpc-bus/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paralin/grpc-bus.git"
@@ -18,13 +22,9 @@
     "mocha": "ts-node ./test/run_tests.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js",
     "mocha-nocover": "ts-node ./test/run_tests.js"
   },
-  "bugs": {
-    "url": "https://github.com/paralin/grpc-bus/issues"
-  },
-  "homepage": "https://github.com/paralin/grpc-bus#readme",
   "dependencies": {
     "lodash": "^4.0.0",
-    "rxjs": "5.0.0-rc.4"
+    "rxjs": "5.0.0-rc.5"
   },
   "devDependencies": {
     "@types/es6-promise": "0.0.32",
@@ -34,14 +34,14 @@
     "babel-core": "^6.18.0",
     "babel-preset-es2015": "^6.18.0",
     "cz-conventional-changelog": "^1.2.0",
-    "grpc": "^1.0.1",
+    "grpc": "^1.0.0",
     "istanbul": "^1.1.0-alpha.1",
-    "jasmine": "^2.5.2",
-    "jasmine-console-reporter": "^1.2.7",
-    "protobufjs": "^6.0.2",
+    "jasmine": "^2.5.0",
+    "jasmine-console-reporter": "^1.2.0",
+    "protobufjs": "^6.0.0",
     "ts-node": "^1.7.0",
     "tslint": "^4.0.0",
-    "typescript": "2.1.1"
+    "typescript": "^2.1.0"
   },
   "config": {
     "commitizen": {
