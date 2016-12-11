@@ -19,7 +19,7 @@
     "lint": "tslint --project tsconfig.json -c tslint.json --type-check",
     "test": "npm run lint && npm run mocha",
     "ci": "npm run build && npm run test",
-    "mocha": "ts-node ./test/run_tests.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" node_modules/jasmine/bin/jasmine.js",
+    "mocha": "ts-node node_modules/istanbul/lib/cli.js cover -e .ts  -x \"*.d.ts\" -x \"*.spec.ts\" ./test/run_tests.js",
     "mocha-nocover": "ts-node ./test/run_tests.js"
   },
   "dependencies": {
