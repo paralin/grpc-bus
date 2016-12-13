@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "lodash": "^4.0.0",
-    "rxjs": "5.0.0-rc.5",
+    "rxjs": "5.0.1",
     "protobufjs": "^6.1.0"
   },
   "devDependencies": {
