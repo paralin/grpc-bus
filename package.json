@@ -40,7 +40,7 @@
     "jasmine": "^2.5.0",
     "jasmine-console-reporter": "^1.2.0",
     "ts-node": "^1.7.0",
-    "tslint": "^4.0.0",
+    "tslint": "^4.3.0",
     "typescript": "^2.1.0"
   },
   "config": {
