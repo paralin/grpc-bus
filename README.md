@@ -1,7 +1,9 @@
 GRPC Bus [![codecov](https://codecov.io/gh/paralin/grpc-bus/branch/master/graph/badge.svg)](https://codecov.io/gh/paralin/grpc-bus) [![Build Status](https://travis-ci.org/paralin/grpc-bus.svg?branch=master)](https://travis-ci.org/paralin/grpc-bus) [![npm version](https://badge.fury.io/js/grpc-bus.svg)](https://badge.fury.io/js/grpc-bus) [![dependencies Status](https://david-dm.org/paralin/grpc-bus/status.svg)](https://david-dm.org/paralin/grpc-bus) [![devDependencies Status](https://david-dm.org/paralin/grpc-bus/dev-status.svg)](https://david-dm.org/paralin/grpc-bus?type=dev)
 ========
 
-GRPC-bus is a mechanism to call GRPC services from the browser using a Node.JS server as a proxy. The link between the browser and Node.JS is defined by the user, but could be something like a websocket.
+**NOTE:** Development on grpc-bus is currently suspended as I have transitioned to Go from Node in all of my projects. If you want to adopt the project, let me know!
+
+GRPC-bus is a mechanism to call GRPC services from the browser using a Node.JS server as a proxy. The link between the browser and Node.JS is defined by the user, but could be something like a WebSocket.
 
 The server and client are expected to share the same / similar protobuf tree. For example, the same result should come from the following code on both the client and server:
 
