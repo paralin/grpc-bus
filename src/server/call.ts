@@ -48,10 +48,6 @@ export class Call {
       this.streamHandle = this.service.stub[camelMethod]((error: any, response: any) => {
         this.handleCallCallback(error, response);
       });
-      // If they sent some args (shouldn't happen usually) send it off anyway
-      if (args) {
-        this.streamHandle.write(args);
-      }
     } else if (rpcMeta.requestStream && rpcMeta.responseStream) {
       this.streamHandle = this.service.stub[camelMethod]();
       this.setCallHandlers(this.streamHandle);
