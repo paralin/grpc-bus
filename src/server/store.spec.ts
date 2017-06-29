@@ -8,7 +8,7 @@ describe('ServiceStore', () => {
   let store: ServiceStore;
   let info: IGBServiceInfo = {
     endpoint: 'localhost:3000',
-    service_id: 'mock.Greeter',
+    serviceId: 'mock.Greeter',
   };
 
   beforeEach(() => {

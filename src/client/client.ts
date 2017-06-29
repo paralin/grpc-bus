@@ -10,66 +10,40 @@ import {
 } from '../proto';
 import { Service } from './service';
 import { IServiceHandle } from './service';
-
-export interface IGRPCTree {
-  [id: string]: IGRPCTree | ((endpoint: string) => Promise<IServiceHandle>);
-}
-
-// Hack: see if something is *probably* a namespace.
-// This is due to the extreme bugginess around namespaces in pbjs.
-function likelyNamespace(tree: any): boolean {
-  if (tree.className === 'Namespace') {
-    return true;
-  }
-  if (tree.className !== 'Message' ||
-      !tree.children ||
-      tree.children.length < 1) {
-    return false;
-  }
-  for (let child of tree.children) {
-    // Messages never have services as children.
-    if (child.className === 'Service') {
-      return true;
-    }
-    // Namespaces never have fields as children.
-    if (child.className === 'Message.Field') {
-      return false;
-    }
-  }
-}
+import * as ProtoBuf from 'protobufjs';
 
 export class Client {
   private serviceIdCounter: number = 1;
   private services: { [id: number]: Service } = {};
 
-  public constructor(private protoTree: any,
+  public constructor(private protoRoot: ProtoBuf.Root,
                      private send: (message: IGBClientMessage) => void) {
+    this.recurseBuildTree(protoRoot, null);
   }
 
   public handleMessage(message: IGBServerMessage) {
-    if (message.service_create) {
-      this.handleServiceCreate(message.service_create);
+    if (message.serviceCreate) {
+      this.handleServiceCreate(message.serviceCreate);
     }
-    if (message.call_create) {
-      this.handleCallCreate(message.call_create);
+    if (message.callCreate) {
+      this.handleCallCreate(message.callCreate);
     }
-    if (message.call_event) {
-      this.handleCallEvent(message.call_event);
+    if (message.callEvent) {
+      this.handleCallEvent(message.callEvent);
     }
-    if (message.call_ended) {
-      this.handleCallEnded(message.call_ended);
+    if (message.callEnded) {
+      this.handleCallEnded(message.callEnded);
     }
-    if (message.service_release) {
-      this.handleServiceRelease(message.service_release);
+    if (message.serviceRelease) {
+      this.handleServiceRelease(message.serviceRelease);
     }
   }
 
-  public buildTree(base: string = '') {
-    let meta = this.protoTree.lookup(base);
-    if (!meta) {
-      throw new Error('Base identifier ' + base + ' not found.');
-    }
-    return this.recurseBuildTree(meta, base);
+  /*
+   * Returns the ProtoBuf.Root containing service constructor functions.
+   */
+  public get root(): ProtoBuf.Root {
+    return this.protoRoot;
   }
 
   // Clears all ongoing calls + services, etc
@@ -85,40 +59,38 @@ export class Client {
     this.services = {};
   }
 
-  private recurseBuildTree(tree: any, identifier: string): IGRPCTree |
-    ((endpoint: string) => Promise<IServiceHandle>) {
-    let result: IGRPCTree = {};
+  private recurseBuildTree(tree: any, identifier: string): any {
     let nextIdentifier: string = tree.name;
-    if (identifier.length) {
+    if (identifier && identifier.length) {
       nextIdentifier = identifier + '.' + nextIdentifier;
     }
-    // Bit of a hack here, detect namespace several ways.
-    if (likelyNamespace(tree)) {
-      for (let child of tree.children) {
-        result[child.name] = this.recurseBuildTree(child, nextIdentifier);
-      }
-      return result;
-    }
-    if (tree.className === 'Service') {
+    if (tree.methods && Object.keys(tree.methods).length) {
       return (endpoint: string) => {
-        return this.buildService(nextIdentifier, endpoint);
+        return this.buildService(tree, nextIdentifier, endpoint);
       };
     }
-    if (tree.className === 'Message' || tree.className === 'Enum') {
-      return tree.build();
+    if (tree.nested) {
+      for (let childName in tree.nested) {
+        if (!tree.nested.hasOwnProperty(childName)) {
+          continue;
+        }
+        tree.nested[childName] = this.recurseBuildTree(tree.nested[childName], nextIdentifier);
+      }
     }
     return tree;
   }
 
   // Build a service and return a service handle promise.
-  private buildService(method: string, endpoint: string): Promise<IServiceHandle> {
+  private buildService(serviceMeta: ProtoBuf.Service,
+                       method: string,
+                       endpoint: string): Promise<IServiceHandle> {
     return new Promise((resolve, reject) => {
       let sid = this.serviceIdCounter++;
       let info: IGBServiceInfo = {
-        service_id: method,
+        serviceId: method,
         endpoint: endpoint,
       };
-      let service = new Service(this.protoTree, sid, info, {
+      let service = new Service(serviceMeta, sid, info, {
         resolve: resolve,
         reject: reject,
       }, this.send);
@@ -128,16 +100,16 @@ export class Client {
         delete this.services[sid];
       });
       this.send({
-        service_create: {
-          service_id: sid,
-          service_info: info,
+        serviceCreate: {
+          serviceId: sid,
+          serviceInfo: info,
         },
       });
     });
   }
 
   private handleServiceCreate(msg: IGBCreateServiceResult) {
-    let service = this.services[msg.service_id];
+    let service = this.services[msg.serviceId];
     if (!service) {
       return;
     }
@@ -145,7 +117,7 @@ export class Client {
   }
 
   private handleCallCreate(msg: IGBCreateCallResult) {
-    let service = this.services[msg.service_id];
+    let service = this.services[msg.serviceId];
     if (!service) {
       return;
     }
@@ -153,7 +125,7 @@ export class Client {
   }
 
   private handleServiceRelease(msg: IGBReleaseServiceResult) {
-    let svc = this.services[msg.service_id];
+    let svc = this.services[msg.serviceId];
     if (!svc) {
       return;
     }
@@ -161,7 +133,7 @@ export class Client {
   }
 
   private handleCallEnded(msg: IGBCallEnded) {
-    let svc = this.services[msg.service_id];
+    let svc = this.services[msg.serviceId];
     if (!svc) {
       return;
     }
@@ -169,7 +141,7 @@ export class Client {
   }
 
   private handleCallEvent(msg: IGBCallEvent) {
-    let service = this.services[msg.service_id];
+    let service = this.services[msg.serviceId];
     if (!service) {
       return;
     }

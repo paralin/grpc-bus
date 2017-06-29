@@ -6,6 +6,7 @@ import {
   IGBServerMessage,
 } from '../proto';
 
+import * as ProtoBuf from 'protobufjs';
 import * as _ from 'lodash';
 
 // An ongoing call against a service.
@@ -24,22 +25,16 @@ export class Call {
   }
 
   public initCall() {
-    if (!this.callInfo || !this.callInfo.method_id) {
+    if (!this.callInfo || !this.callInfo.methodId) {
       throw new Error('Call info, method ID must be given');
     }
-    let args: any = this.callInfo.bin_argument;
-    let rpcMeta = this.service.lookupMethod(this.callInfo.method_id);
+    let args: any = this.callInfo.binArgument;
+    let rpcMeta: ProtoBuf.Method =
+      <any>this.service.serviceMeta.lookup(this.callInfo.methodId);
     if (!rpcMeta) {
-      throw new Error('Method ' + this.callInfo.method_id + ' not found.');
+      throw new Error('Method ' + this.callInfo.methodId + ' not found.');
     }
     this.rpcMeta = rpcMeta;
-    if (rpcMeta.className !== 'Service.RPCMethod') {
-      throw new Error('Method ' +
-                      this.callInfo.method_id +
-                      ' is a ' +
-                      rpcMeta.className +
-                      ' not a Service.RPCMethod');
-    }
     let camelMethod = _.camelCase(rpcMeta.name);
     if (!this.service.stub[camelMethod] || typeof this.service.stub[camelMethod] !== 'function') {
       throw new Error('Method ' + camelMethod + ' not defined by grpc.');
@@ -61,9 +56,9 @@ export class Call {
     } else if (!rpcMeta.requestStream && !rpcMeta.responseStream) {
       if (!args) {
         throw new Error('Method ' +
-                        this.callInfo.method_id +
+                        this.callInfo.methodId +
                         ' requires an argument object of type ' +
-                        rpcMeta.requestName + '.');
+                        rpcMeta.resolvedRequestType.name + '.');
       }
       this.service.stub[camelMethod](args, (error: any, response: any) => {
         this.handleCallCallback(error, response);
@@ -91,9 +86,9 @@ export class Call {
 
   public dispose() {
     this.send({
-      call_ended: {
-        call_id: this.clientId,
-        service_id: this.clientServiceId,
+      callEnded: {
+        callId: this.clientId,
+        serviceId: this.clientServiceId,
       },
     });
     if (this.streamHandle && typeof this.streamHandle['end'] === 'function') {
@@ -126,20 +121,20 @@ export class Call {
   private callEventHandler(eventId: string, isBin: boolean = false) {
     return (data: any) => {
       let callEvent: IGBCallEvent = {
-        service_id: this.clientServiceId,
-        call_id: this.clientId,
-        json_data: !isBin ? JSON.stringify(data) : undefined,
-        bin_data: isBin ? data : undefined,
+        serviceId: this.clientServiceId,
+        callId: this.clientId,
+        jsonData: !isBin ? JSON.stringify(data) : undefined,
+        binData: isBin ? data : undefined,
         event: eventId,
       };
-      if (!callEvent.json_data) {
-        delete callEvent.json_data;
+      if (!callEvent.jsonData) {
+        delete callEvent.jsonData;
       }
-      if (!callEvent.bin_data) {
-        delete callEvent.bin_data;
+      if (!callEvent.binData) {
+        delete callEvent.binData;
       }
       this.send({
-        call_event: callEvent,
+        callEvent: callEvent,
       });
     };
   }
