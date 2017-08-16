@@ -121,6 +121,15 @@ export class Call {
 
   private callEventHandler(eventId: string, isBin: boolean = false) {
     return (data: any) => {
+      if (eventId === 'error') {
+        // An error's message is not enumerable, so doesn't get included
+        // by JSON.stringify(). Copy error info to a new, serializable object
+        let enumerableError: any = {};
+        Object.getOwnPropertyNames(data).forEach(key => {
+          enumerableError[key] = data[key];
+        });
+        data = enumerableError;
+      }
       let callEvent: IGBCallEvent = {
         service_id: this.clientServiceId,
         call_id: this.clientId,
